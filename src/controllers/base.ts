@@ -26,14 +26,14 @@ const usernameOpts = {
   storeClient: mongoConn,
   keyPrefix: "login_fail_username",
   points: maxFailsByLogin,
-  duration: 60 * 60 * 3,
+  duration: 60 * 60 * 300,
   blockDuration: 60 * 15,
 };
 const ipOpts = {
   storeClient: mongoConn,
   keyPrefix: "login_fail_ip",
   points: maxFailsByLogin,
-  duration: 60 * 60 * 3,
+  duration: 60 * 60 * 300,
   blockDuration: 60 * 15,
 };
 export const usernameLimiter = new RateLimiterMongo(usernameOpts);

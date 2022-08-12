@@ -3,6 +3,10 @@ import * as randomString from "randomstring";
 import { bufferToHex } from "ethereumjs-util";
 import { Request, Response } from "express";
 import { recoverPersonalSignature } from "eth-sig-util";
+
+import * as nacl from "tweetnacl";
+import * as bs58 from "bs58";
+
 import {
   Users,
   Sessions,
@@ -160,9 +164,7 @@ export const signup = async (req: Request, res: Response) => {
   if (!u_result || !b_result) {
     return res.status(400).json("error");
   } else {
-    return res.json(
-      "You have successfully created in as a user to Boibook."
-    );
+    return res.json("You have successfully created in as a user to Boibook.");
   }
 };
 
@@ -180,7 +182,9 @@ export const checkAddress = async (req: Request, res: Response) => {
     },
   });
   if (!user) {
-    return res.status(400).json(`We can't find with this account.`);
+    return res
+      .status(400)
+      .json(`We can't find with this account. will signup automatically.`);
   } else if (!user.status) {
     return res.status(400).json("Account has been blocked.");
   }
@@ -205,7 +209,7 @@ export const joinAddress = async (req: Request, res: Response) => {
   if (exists) {
     return res.status(400).json(`${publicAddress} is used by another account.`);
   }
-  const currency = await Currencies.findOne({ symbol: "MBT" });
+  const currency = await Currencies.findOne({ symbol: "SOL" });
   if (!currency) {
     return res.status(400).json("error");
   }
@@ -228,9 +232,7 @@ export const joinAddress = async (req: Request, res: Response) => {
   if (!u_result || !b_result) {
     return res.status(400).json("error");
   } else {
-    return res.json(
-      "You have successfully created in as a user to Boibook."
-    );
+    return res.json("You have successfully created in as a user to Boibook.");
   }
 };
 
@@ -249,12 +251,14 @@ export const signinAddress = async (req: Request, res: Response) => {
     return res.status(400).json("Account has been blocked.");
   }
   const msg = `boibook: ${user.nonce}`;
-  const msgBufferHex = bufferToHex(Buffer.from(msg, "utf8"));
-  const address = recoverPersonalSignature({
-    data: msgBufferHex,
-    sig: signature,
-  });
-  if (address.toLowerCase() !== publicAddress.toLowerCase()) {
+
+  const verified = nacl.sign.detached.verify(
+    new TextEncoder().encode(msg),
+    bs58.decode(signature),
+    bs58.decode(publicAddress)
+  );
+
+  if (verified != true) {
     return res.status(400).json("Signature verification failed.");
   }
   user.nonce = Date.now();

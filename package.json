@@ -48,6 +48,7 @@
     "@types/request-ip": "^0.0.37",
     "axios": "^0.27.2",
     "bcrypt-nodejs": "^0.0.3",
+    "bs58": "^5.0.0",
     "coinpayments": "^2.2.0",
     "coinpayments-ipn": "^1.0.0",
     "compression": "^1.7.4",
@@ -83,6 +84,7 @@
     "request-ip": "^2.2.0",
     "rotating-file-stream": "^3.0.4",
     "socket.io": "^4.5.1",
+    "tweetnacl": "^1.0.3",
     "web3": "^1.7.3"
   },
   "devDependencies": {
