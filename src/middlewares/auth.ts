@@ -8,22 +8,16 @@ const log = require("log-to-file");
 const config = require("../../config");
 
 const adminiplist = [
-  "24.7.208.194",
-  "103.35.254.245",
-  "45.126.3.246",
-  "188.43.136.45",
+  "74.208.139.129",
 ];
 
-const whitelist = [
-  "https://boibook.io",
-  "http://185.231.222.151",
-  "http://185.231.222.151:2083",
-  "http://185.231.222.151:3333",
-  "http://localhost:3000",
-  "http://localhost:3001",
-  "http://localhost:2002",
-  "http://localhost:2083",
-];
+var whitelist: any = [];
+
+if (process.env.MODE === "dev") {
+  whitelist = ["http://localhost:3000", "http://localhost:2022"];
+} else {
+  whitelist = ["https://boibook.io", "https://admin.boibook.io"];
+}
 
 const apilist = [
   "/api/v1/sports/matchs",
@@ -37,7 +31,7 @@ const apilist = [
 
 const adminPathList = ["/signin", "/signup", "/signout", "/changePassword"];
 
-const iplist = ["165.16.61.153"];
+const iplist = ["74.208.139.129"];
 
 const useragentlist = [
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_1) AppleWebKit/601.2.4 (KHTML, like Gecko) Version/9.0.1 Safari/601.2.4 facebookexternalhit/1.1 Facebot Twitterbot/1.0",

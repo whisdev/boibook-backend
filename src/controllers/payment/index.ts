@@ -9,7 +9,7 @@ import { balanceUpdate, decrypt, NumberFix, ObjectId } from "../base";
 const Web3 = require("web3");
 const IPN = require("coinpayments-ipn");
 
-const ipn_url = `${process.env.API_URL}${process.env.IPN_URL}`;
+const ipn_url = `${process.env.MODE === "dev" ? process.env.DEV_API_URL : process.env.API_URL}${process.env.IPN_URL}`;
 const adminAddress = process.env.PUBLIC_ADDRESS as string;
 
 // const CoinpaymentsCredentials = {

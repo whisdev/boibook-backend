@@ -110,7 +110,7 @@ mongoose
     const io = require("socket.io")(http, { cors: { origin: "*" } });
     socket(io);
     app.set("io", io);
-    const port = process.env.MODE === "dev" ? 5000 : 80;
+    const port = process.env.PORT;
     http.listen(port);
     console.log("server listening on:", port);
   })

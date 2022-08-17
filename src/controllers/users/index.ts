@@ -383,7 +383,7 @@ export const forgot = async (req: Request, res: Response) => {
       upsert: true,
     });
     const subject = "Forgot Password";
-    const link = `${process.env.BASE_URL}password-reset/${user._id}/${passwordToken}`;
+    const link = `${process.env.MODE === "dev" ? process.env.DEV_BASE_URL : process.env.BASE_URL}password-reset/${user._id}/${passwordToken}`;
     const html = getForgotPasswordHtml(link);
     await sendEmail({ to: email, html, subject });
     return res.json(
