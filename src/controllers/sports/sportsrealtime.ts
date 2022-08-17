@@ -16,32 +16,12 @@ let ecount = 0;
 let ecount1 = 0;
 let scount = 0;
 
-export const Matchs1 = () => {
+export const Matchs = () => {
   try {
-    console.log("server on: matchs1");
-    getEvents1();
-    const job1 = new CronJob(process.env.LIVE_TIME as string, () => {
-      getEvents1();
-      console.log(
-        moment().format("YYYY-MM-DD hh:mm:ss"),
-        count,
-        ecount,
-        ecount1,
-        scount
-      );
-    });
-    job1.start();
-  } catch (error) {
-    console.log(`matchs1 server error`, error);
-  }
-};
-
-export const Matchs2 = () => {
-  try {
-    console.log("server on: matchs2");
-    getEvents2();
+    console.log("server on: matchs");
+    getEvents();
     const job2 = new CronJob(process.env.UPCOMIN_TIME as string, () => {
-      getEvents2();
+      getEvents();
       console.log(
         moment().format("YYYY-MM-DD hh:mm:ss"),
         count,
@@ -52,56 +32,16 @@ export const Matchs2 = () => {
     });
     job2.start();
   } catch (error) {
-    console.log(`matchs2 server error`, error);
+    console.log(`matchs server error`, error);
   }
 };
 
-export const Matchs3 = () => {
+export const Odds = () => {
   try {
-    console.log("server on: matchs3");
-    getEvents3();
-    const job3 = new CronJob(process.env.PRE_TIME as string, () => {
-      getEvents3();
-      console.log(
-        moment().format("YYYY-MM-DD hh:mm:ss"),
-        count,
-        ecount,
-        ecount1,
-        scount
-      );
-    });
-    job3.start();
-  } catch (error) {
-    console.log(`matchs3 server error`, error);
-  }
-};
-
-export const Odds1 = () => {
-  try {
-    console.log("server on: odds1");
-    getOdd1();
-    const job1 = new CronJob(process.env.LIVE_TIME as string, () => {
-      getOdd1();
-      console.log(
-        moment().format("YYYY-MM-DD hh:mm:ss"),
-        count,
-        ecount,
-        ecount1,
-        scount
-      );
-    });
-    job1.start();
-  } catch (error) {
-    console.log(`odds1 server error`, error);
-  }
-};
-
-export const Odds2 = () => {
-  try {
-    console.log("server on: odds2");
-    getOdd2();
+    console.log("server on: odds");
+    getOdd();
     const job2 = new CronJob(process.env.UPCOMIN_TIME as string, () => {
-      getOdd2();
+      getOdd();
       console.log(
         moment().format("YYYY-MM-DD hh:mm:ss"),
         count,
@@ -112,56 +52,16 @@ export const Odds2 = () => {
     });
     job2.start();
   } catch (error) {
-    console.log(`odds2 server error`, error);
+    console.log(`odds server error`, error);
   }
 };
 
-export const Odds3 = () => {
+export const Ends = () => {
   try {
-    console.log("server on: odds3");
-    getOdd3();
-    const job3 = new CronJob(process.env.PRE_TIME as string, () => {
-      getOdd3();
-      console.log(
-        moment().format("YYYY-MM-DD hh:mm:ss"),
-        count,
-        ecount,
-        ecount1,
-        scount
-      );
-    });
-    job3.start();
-  } catch (error) {
-    console.log(`odds3 server error`, error);
-  }
-};
-
-export const Ends1 = () => {
-  try {
-    console.log("server on: ends1");
-    getEnds1();
-    const job1 = new CronJob(process.env.LIVE_TIME as string, () => {
-      getEnds1();
-      console.log(
-        moment().format("YYYY-MM-DD hh:mm:ss"),
-        count,
-        ecount,
-        ecount1,
-        scount
-      );
-    });
-    job1.start();
-  } catch (error) {
-    console.log(`ends1 server error`, error);
-  }
-};
-
-export const Ends2 = () => {
-  try {
-    console.log("server on: ends2");
-    getEnds2();
+    console.log("server on: ends");
+    getMatchEnds();
     const job2 = new CronJob(process.env.UPCOMIN_TIME as string, () => {
-      getEnds2();
+      getMatchEnds();
       console.log(
         moment().format("YYYY-MM-DD hh:mm:ss"),
         count,
@@ -172,27 +72,7 @@ export const Ends2 = () => {
     });
     job2.start();
   } catch (error) {
-    console.log(`ends2 server error`, error);
-  }
-};
-
-export const Ends3 = () => {
-  try {
-    console.log("server on: ends3");
-    getEnds3();
-    const job3 = new CronJob(process.env.PRE_TIME as string, () => {
-      getEnds3();
-      console.log(
-        moment().format("YYYY-MM-DD hh:mm:ss"),
-        count,
-        ecount,
-        ecount1,
-        scount
-      );
-    });
-    job3.start();
-  } catch (error) {
-    console.log(`ends3 server error`, error);
+    console.log(`ends server error`, error);
   }
 };
 
@@ -298,23 +178,9 @@ export const getEndedEvents = (event_id: string) => {
   });
 };
 
-const getEvents1 = async () => {
-  const sportslist = await SportsLists.find({ status: true });
-  for (const key in sportslist) {
-    getInplayPage(sportslist[key].SportId);
-  }
-};
-
-const getEvents2 = async () => {
-  const sportslist = await SportsLists.find({ status: true });
-  for (const key in sportslist) {
-    await getUpcomingPage(sportslist[key].SportId, moment().format("YYYYMMDD"));
-  }
-};
-
 const thereDaysSports = [1, 18, 13, 92, 151];
 
-const getEvents3 = async () => {
+const getEvents = async () => {
   const sportslist = await SportsLists.find({ status: true });
   for (const key in sportslist) {
     await getUpcomingPage(
@@ -350,37 +216,7 @@ const getEvents3 = async () => {
   }
 };
 
-const getOdd1 = async () => {
-  const sportsmatchs = await SportsMatchs.aggregate([
-    {
-      $match: {
-        time_status: 1,
-      },
-    },
-    {
-      $lookup: {
-        from: "sports_lists",
-        localField: "sport_id",
-        foreignField: "SportId",
-        as: "sport",
-      },
-    },
-    {
-      $unwind: "$sport",
-    },
-    {
-      $match: {
-        "sport.status": true,
-        "sport.live": true,
-      },
-    },
-  ]);
-  for (const key in sportsmatchs) {
-    await getOdds(sportsmatchs[key].id, true);
-  }
-};
-
-const getOdd2 = async () => {
+const getOdd = async () => {
   const lte = Math.floor(moment().add(1, "days").valueOf() / 1000);
   const sportsmatchs = await SportsMatchs.aggregate([
     {
@@ -412,90 +248,11 @@ const getOdd2 = async () => {
   }
 };
 
-const getOdd3 = async () => {
-  const gte = Math.floor(moment().add(1, "days").valueOf() / 1000);
-  const sportsmatchs = await SportsMatchs.aggregate([
-    {
-      $match: {
-        time_status: 0,
-        time: { $gte: gte },
-      },
-    },
-    {
-      $lookup: {
-        from: "sports_lists",
-        localField: "sport_id",
-        foreignField: "SportId",
-        as: "sport",
-      },
-    },
-    {
-      $unwind: "$sport",
-    },
-    {
-      $match: {
-        "sport.status": true,
-        "sport.upcoming": true,
-      },
-    },
-  ]);
-  for (const key in sportsmatchs) {
-    await getOdds(sportsmatchs[key].id, false, 100);
-  }
-};
-
-const getEnds1 = async () => {
-  const sportsmatchs = await SportsMatchs.find({ time_status: 1 }).select({
-    id: 1,
-    _id: 0,
-  });
-  const matchIds = sportsmatchs.map((e) => e.id);
-  const id_count = 10;
-  let pages = Math.ceil(matchIds.length / id_count);
-  let sendEventIds = [] as any;
-  for (let i = 0; i < pages; i++) {
-    let matchId = [] as any;
-    if (i === 0) {
-      matchId = matchIds.slice(0, i + 1 * id_count);
-    } else {
-      matchId = matchIds.slice(i * id_count, (i + 1) * id_count);
-    }
-    sendEventIds.push(matchId.join(","));
-  }
-  for (let i in sendEventIds) {
-    getEndedEvents(sendEventIds[i]);
-  }
-};
-
-const getEnds2 = async () => {
+const getMatchEnds = async () => {
   const lte = Math.floor(moment().add(1, "days").valueOf() / 1000);
   const sportsmatchs = await SportsMatchs.find({
     time_status: { $ne: 1 },
     time: { $lte: lte },
-  }).select({ id: 1, _id: 0 });
-  const matchIds = sportsmatchs.map((e) => e.id);
-  const id_count = 10;
-  let pages = Math.ceil(matchIds.length / id_count);
-  let sendEventIds = [] as any;
-  for (let i = 0; i < pages; i++) {
-    let matchId = [] as any;
-    if (i === 0) {
-      matchId = matchIds.slice(0, i + 1 * id_count);
-    } else {
-      matchId = matchIds.slice(i * id_count, (i + 1) * id_count);
-    }
-    sendEventIds.push(matchId.join(","));
-  }
-  for (let i in sendEventIds) {
-    getEndedEvents(sendEventIds[i]);
-  }
-};
-
-const getEnds3 = async () => {
-  const gte = Math.floor(moment().add(1, "days").valueOf() / 1000);
-  const sportsmatchs = await SportsMatchs.find({
-    time_status: { $ne: 1 },
-    time: { $gte: gte },
   }).select({ id: 1, _id: 0 });
   const matchIds = sportsmatchs.map((e) => e.id);
   const id_count = 10;

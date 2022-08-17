@@ -1,12 +1,12 @@
 import "dotenv/config";
 import "regenerator-runtime";
 import mongoose from "mongoose";
-import { Odds2 } from "./controllers/sports/sportsrealtime";
+import { Odds } from "./controllers/sports/sportsrealtime";
 
 try {
   mongoose.connect(process.env.DATABASE as string).then(() => {
-    Odds2();
+    Odds();
   });
 } catch (error) {
-  console.log(`Odds2`, error);
+  console.log(`Odds`, error);
 }
