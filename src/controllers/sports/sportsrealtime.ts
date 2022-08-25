@@ -178,8 +178,6 @@ export const getEndedEvents = (event_id: string) => {
   });
 };
 
-const thereDaysSports = [1, 18, 13, 92, 151];
-
 const getEvents = async () => {
   const sportslist = await SportsLists.find({ status: true });
   for (const key in sportslist) {
@@ -195,29 +193,27 @@ const getEvents = async () => {
       sportslist[key].SportId,
       moment().add(3, "days").format("YYYYMMDD")
     );
-    if (thereDaysSports.indexOf(sportslist[key].SportId) === -1) {
-      await getUpcomingPage(
-        sportslist[key].SportId,
-        moment().add(4, "days").format("YYYYMMDD")
-      );
-      await getUpcomingPage(
-        sportslist[key].SportId,
-        moment().add(5, "days").format("YYYYMMDD")
-      );
-      await getUpcomingPage(
-        sportslist[key].SportId,
-        moment().add(6, "days").format("YYYYMMDD")
-      );
-      await getUpcomingPage(
-        sportslist[key].SportId,
-        moment().add(7, "days").format("YYYYMMDD")
-      );
-    }
+    await getUpcomingPage(
+      sportslist[key].SportId,
+      moment().add(4, "days").format("YYYYMMDD")
+    );
+    await getUpcomingPage(
+      sportslist[key].SportId,
+      moment().add(5, "days").format("YYYYMMDD")
+    );
+    await getUpcomingPage(
+      sportslist[key].SportId,
+      moment().add(6, "days").format("YYYYMMDD")
+    );
+    await getUpcomingPage(
+      sportslist[key].SportId,
+      moment().add(7, "days").format("YYYYMMDD")
+    );
   }
 };
 
 const getOdd = async () => {
-  const lte = Math.floor(moment().add(1, "days").valueOf() / 1000);
+  const lte = Math.floor(moment().add(7, "days").valueOf() / 1000);
   const sportsmatchs = await SportsMatchs.aggregate([
     {
       $match: {
@@ -249,7 +245,7 @@ const getOdd = async () => {
 };
 
 const getMatchEnds = async () => {
-  const lte = Math.floor(moment().add(1, "days").valueOf() / 1000);
+  const lte = Math.floor(moment().add(7, "days").valueOf() / 1000);
   const sportsmatchs = await SportsMatchs.find({
     time_status: { $ne: 1 },
     time: { $lte: lte },
@@ -407,105 +403,6 @@ const getLeague = (sport_id: number, page: number) => {
             });
           } catch (error) {
             console.log("getLeague => update", error);
-          }
-        }
-      }
-    }
-  });
-};
-
-const getInplayPage = (sport_id: number) => {
-  const options = {
-    method: "GET",
-    url: process.env.LIVE_ENDPOINT as string,
-    qs: { token, sport_id, skip_esports: "Esports" },
-    headers: { "Content-Type": "application/json" },
-    body: { page: 1, skip_markets: 1 },
-    json: true,
-  };
-  request(options, (error: any, response: any, body: any) => {
-    if (error) {
-      ecount++;
-    } else {
-      count++;
-      const data = body;
-      if (!data || !data?.pager) return console.log(data);
-      const pager = data.pager;
-      const page = Math.ceil(pager.total / pager.per_page);
-      for (let i = 0; i < page; i++) {
-        getInplayEvents(sport_id, i + 1);
-      }
-    }
-  });
-};
-
-const getInplayEvents = (sport_id: number, page: number) => {
-  const options = {
-    method: "GET",
-    url: process.env.LIVE_ENDPOINT as string,
-    headers: { "Content-Type": "application/json" },
-    qs: { token, sport_id, skip_esports: "Esports" },
-    body: { page },
-    json: true,
-  };
-  request(options, async (error: any, response: any, body: any) => {
-    if (error) {
-      ecount++;
-    } else {
-      count++;
-      if (body && body.success && body.results.length) {
-        const results = body.results;
-        for (const i in results) {
-          const result = results[i];
-          if (
-            result.away &&
-            result.home &&
-            result.time &&
-            result.time_status !== 2 &&
-            result.time_status !== 3
-          ) {
-            try {
-              const date = moment().add(7, "days").valueOf();
-              const time = new Date(result.time * 1000).valueOf();
-              const sportsLeagues = await SportsLeagues.findOne({
-                id: result.league.id,
-              });
-              if (sportsLeagues?.status && time < date) {
-                const exists = await SportsFixMatchs.findOne({ id: result.id });
-                if (!exists) {
-                  await SportsMatchs.updateOne({ id: result.id }, result, {
-                    upsert: true,
-                  });
-                  scount++;
-                }
-              }
-            } catch (error) {
-              ecount1++;
-            }
-          } else if (
-            result.time &&
-            result.sport_id === "2" &&
-            result.time_status !== 2 &&
-            result.time_status !== 3
-          ) {
-            try {
-              const date = moment().add(7, "days").valueOf();
-              const time = new Date(result.time * 1000).valueOf();
-              const sportsLeagues = await SportsLeagues.findOne({
-                id: result.league.id,
-              });
-              if (sportsLeagues?.status && time < date) {
-                const exists = await SportsFixMatchs.findOne({ id: result.id });
-                if (!exists) {
-                  await SportsMatchs.updateOne({ id: result.id }, result, {
-                    upsert: true,
-                  });
-                  scount++;
-                }
-              }
-            } catch (error) {
-              ecount1++;
-            }
           }
         }
       }

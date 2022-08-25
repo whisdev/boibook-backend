@@ -336,7 +336,7 @@ export const withdrawal = async (req: Request, res: Response) => {
     userId,
     balanceId,
     currencyId: currency._id,
-    currency: currency.payment,
+    currency: currency.symbol,
     amount,
     address,
     method,
@@ -528,50 +528,50 @@ export const useCurrency = async (req: Request, res: Response) => {
   return res.json(result);
 };
 
-export const UpdatePrices = async () => {
-  const currencies = await Currencies.find({ coingecko: { $ne: "" } }).select({
-    coingecko: 1,
-    _id: 0,
-  });
-  const ids = currencies.map((e) => e.coingecko);
-  const id_count = 4;
-  let pages = Math.ceil(ids.length / id_count);
-  let sendIds = [] as any;
-  for (let i = 0; i < pages; i++) {
-    let id = [] as any;
-    if (i === 0) {
-      id = ids.slice(0, i + 1 * id_count);
-    } else {
-      id = ids.slice(i * id_count, (i + 1) * id_count);
-    }
-    sendIds.push(id.join(","));
-  }
-  for (let i in sendIds) {
-    setTimeout(() => {
-      const option1 = {
-        method: "GET",
-        url: process.env.GET_PRICE_URL as string,
-        headers: { "Content-Type": "application/json" },
-        qs: {
-          ids: sendIds[i],
-          vs_currencies: "usd",
-        },
-        json: true,
-      };
-      request(option1, async (error, response, body) => {
-        if (!error) {
-          for (const i in body) {
-            if (i)
-              await Currencies.updateOne(
-                { coingecko: i },
-                { price: body[i].usd }
-              );
-          }
-        }
-      });
-    }, 1000);
-  }
-};
+// export const UpdatePrices = async () => {
+//   const currencies = await Currencies.find({ coingecko: { $ne: "" } }).select({
+//     coingecko: 1,
+//     _id: 0,
+//   });
+//   const ids = currencies.map((e) => e.coingecko);
+//   const id_count = 4;
+//   let pages = Math.ceil(ids.length / id_count);
+//   let sendIds = [] as any;
+//   for (let i = 0; i < pages; i++) {
+//     let id = [] as any;
+//     if (i === 0) {
+//       id = ids.slice(0, i + 1 * id_count);
+//     } else {
+//       id = ids.slice(i * id_count, (i + 1) * id_count);
+//     }
+//     sendIds.push(id.join(","));
+//   }
+//   for (let i in sendIds) {
+//     setTimeout(() => {
+//       const option1 = {
+//         method: "GET",
+//         url: process.env.GET_PRICE_URL as string,
+//         headers: { "Content-Type": "application/json" },
+//         qs: {
+//           ids: sendIds[i],
+//           vs_currencies: "usd",
+//         },
+//         json: true,
+//       };
+//       request(option1, async (error, response, body) => {
+//         if (!error) {
+//           for (const i in body) {
+//             if (i)
+//               await Currencies.updateOne(
+//                 { coingecko: i },
+//                 { price: body[i].usd }
+//               );
+//           }
+//         }
+//       });
+//     }, 1000);
+//   }
+// };
 
 export const updateBalance = async (req: Request, res: Response) => {
   const { balanceId, amount, type } = req.body;

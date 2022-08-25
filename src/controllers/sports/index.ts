@@ -41,41 +41,7 @@ export const getSportsOdds = async (req: Request, res: Response) => {
 export const getSportsMatchs = async (req: Request, res: Response) => {
   const { EventStatus, SportId } = req.body;
   const gte = Math.floor(Date.now().valueOf() / 1000);
-  if (EventStatus === "LIVE") {
-    const query = {
-      sport_id: Number(SportId),
-      time_status: Number(1),
-    };
-    const squery = {
-      "sport.status": true,
-      "sport.live": true,
-    };
-    return await getSportMatchs(req, res, query, squery);
-  } else if (EventStatus === "HOUR") {
-    const lte = Math.floor(moment().add(1, "hours").valueOf() / 1000);
-    const query = {
-      sport_id: Number(SportId),
-      time_status: Number(0),
-      time: { $gte: gte, $lte: lte },
-    };
-    const squery = {
-      "sport.status": true,
-      "sport.upcoming": true,
-    };
-    return await getSportMatchs(req, res, query, squery);
-  } else if (EventStatus === "TODAY") {
-    const lte = Math.floor(moment().add(1, "days").valueOf() / 1000);
-    const query = {
-      sport_id: Number(SportId),
-      time_status: Number(0),
-      time: { $gte: gte, $lte: lte },
-    };
-    const squery = {
-      "sport.status": true,
-      "sport.upcoming": true,
-    };
-    return await getSportMatchs(req, res, query, squery);
-  } else if (EventStatus === "PRE") {
+  if (EventStatus === "PRE") {
     const lte = Math.floor(moment().add(7, "days").valueOf() / 1000);
     const query = {
       sport_id: Number(SportId),

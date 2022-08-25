@@ -14,19 +14,19 @@ const CurrenciesSchema = new Schema(
       type: String,
       required: true,
     },
-    payment: {
-      type: String,
-    },
-    buyUrl: {
-      type: String,
-    },
-    coingecko: {
-      type: String,
-    },
-    price: {
-      type: Number,
-      default: 0,
-    },
+    // payment: {
+    //   type: String,
+    // },
+    // buyUrl: {
+    //   type: String,
+    // },
+    // coingecko: {
+    //   type: String,
+    // },
+    // price: {
+    //   type: Number,
+    //   default: 0,
+    // },
     minDeposit: {
       type: Number,
       default: 0,
@@ -47,22 +47,22 @@ const CurrenciesSchema = new Schema(
       type: Number,
       default: 0,
     },
-    adminAddress: {
+    // adminAddress: {
+    //   type: String,
+    //   default: "",
+    // },
+    tokenMintAccount: {
       type: String,
       default: "",
     },
-    contractAddress: {
-      type: String,
-      default: "",
-    },
-    abi: {
-      type: Array,
-      default: [],
-    },
-    type: {
-      type: Number,
-      required: true,
-    },
+    // abi: {
+    //   type: Array,
+    //   default: [],
+    // },
+    // type: {
+    //   type: Number,
+    //   required: true,
+    // },
     status: {
       type: Boolean,
       default: true,
@@ -78,10 +78,10 @@ const CurrenciesSchema = new Schema(
     order: {
       type: Number,
     },
-    officialLink: {
-      type: String,
-      default: "",
-    },
+    // officialLink: {
+    //   type: String,
+    //   default: "",
+    // },
   },
   { timestamps: true }
 );
