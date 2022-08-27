@@ -300,14 +300,18 @@ export const depositSolana = async (req: Request, res: Response) => {
               return clearTimeout(timer);
             }
           } else {
+            var sendAmount =
+              (Number(tResult.meta.postTokenBalances[0].uiTokenAmount.amount) -
+                Number(tResult.meta.preTokenBalances[0].uiTokenAmount.amount)) /
+              SolanaWeb3.LAMPORTS_PER_SOL;
             if (
-              amounti == tResult.meta.postTokenBalances[2] &&
+              amounti == sendAmount &&
               from.toLowerCase() ==
-                tResult.transaction.message.accountKeys[0].toLowerCase() &&
+                tResult.meta.postTokenBalances[1].owner.toLowerCase() &&
               address.toLowerCase() ==
-                tResult.transaction.message.accountKeys[2].toLowerCase() &&
+                tResult.meta.postTokenBalances[0].mint.toLowerCase() &&
               receiver.toLowerCase() ==
-                tResult.transaction.message.accountKeys[1].toLowerCase()
+                tResult.meta.postTokenBalances[0].owner.toLowerCase()
             ) {
               await Payments.findByIdAndUpdate(
                 ObjectId(payment._id),
