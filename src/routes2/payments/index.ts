@@ -10,7 +10,7 @@ import {
   useCurrency,
   withdrawal,
   getTransactions,
-  depositMetamask,
+  depositSolana,
   cancelWithdrawal,
 } from "../../controllers/payment";
 const router = routerx();
@@ -47,10 +47,10 @@ router.post(
   "/m-deposit",
   Mlimiter,
   depositlimiter,
-  V.body(Validator.Payments.Payment.MetamaskDeposit),
+  V.body(Validator.Payments.Payment.SolanaDeposit),
   verifyToken,
   checkUser,
-  depositMetamask
+  depositSolana
 );
 router.post(
   "/withdrawal",

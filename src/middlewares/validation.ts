@@ -1013,11 +1013,11 @@ export const Validator = {
         userId: Joi.string().min(24).max(24).required(),
         currency: Joi.string().min(24).max(24).required(),
       }),
-      MetamaskDeposit: Joi.object({
+      SolanaDeposit: Joi.object({
         userId: Joi.string().min(24).max(24).required(),
         balanceId: Joi.string().min(24).max(24).required(),
         currencyId: Joi.string().min(24).max(24).required(),
-        txn_id: Joi.string().min(66).max(66).required(),
+        signature: Joi.string().min(50).max(100).required(),
         amount: Joi.number().required(),
         amounti: Joi.any().required(),
         address: Joi.string().required(),

@@ -4,12 +4,18 @@ import * as moment from "moment-timezone";
 import { Request, Response } from "express";
 import { parseUnits, formatUnits } from "@ethersproject/units";
 import { Transaction as EthereumTx } from "ethereumjs-tx";
+
+import axios from "axios";
+import * as SolanaWeb3 from "@solana/web3.js";
+
 import { Balances, Currencies, Payments } from "../../models";
 import { balanceUpdate, decrypt, NumberFix, ObjectId } from "../base";
 const Web3 = require("web3");
 const IPN = require("coinpayments-ipn");
 
-const ipn_url = `${process.env.MODE === "dev" ? process.env.DEV_API_URL : process.env.API_URL}${process.env.IPN_URL}`;
+const ipn_url = `${
+  process.env.MODE === "dev" ? process.env.DEV_API_URL : process.env.API_URL
+}${process.env.IPN_URL}`;
 const adminAddress = process.env.PUBLIC_ADDRESS as string;
 
 // const CoinpaymentsCredentials = {
@@ -78,11 +84,11 @@ const transferErc20 = async (
         .toString("hex")}`;
       web3.eth.sendSignedTransaction(
         serializedTransaction,
-        (error: any, txn_id: string) => {
+        (error: any, signature: string) => {
           if (error) {
             return reject(error);
           } else {
-            return resolve(txn_id);
+            return resolve(signature);
           }
         }
       );
@@ -133,11 +139,11 @@ const transferEthererum = async (
           .toString("hex")}`;
         web3.eth.sendSignedTransaction(
           serializedTransaction,
-          (error: any, txn_id: string) => {
+          (error: any, signature: string) => {
             if (error) {
               return reject(error);
             } else {
-              return resolve(txn_id);
+              return resolve(signature);
             }
           }
         );
@@ -192,12 +198,12 @@ export const deposit = async (req: Request, res: Response) => {
   }
 };
 
-export const depositMetamask = async (req: Request, res: Response) => {
+export const depositSolana = async (req: Request, res: Response) => {
   const {
     userId,
     balanceId,
     currencyId,
-    txn_id,
+    signature,
     amount,
     amounti,
     address,
@@ -213,10 +219,10 @@ export const depositMetamask = async (req: Request, res: Response) => {
   if (!balances) {
     return res.status(400).json("Invalid field!");
   }
-  const result = await Payments.findOne({ txn_id });
-  if (result) return res.json({});
+  // const result = await Payments.findOne({ signature });
+  // if (result) return res.json({});
   const payment: any = await Payments.findOneAndUpdate(
-    { txn_id },
+    { signature },
     {
       userId,
       balanceId,
@@ -228,7 +234,7 @@ export const depositMetamask = async (req: Request, res: Response) => {
       method: 0,
       ipn_type: "deposit",
       status_text: "deposited",
-      txn_id,
+      signature,
     },
     { upsert: true, new: true }
   );
@@ -240,67 +246,84 @@ export const depositMetamask = async (req: Request, res: Response) => {
     if (paymentResult.status === 100 || paymentResult.status === -1) {
       return clearTimeout(timer);
     } else {
-      const responseReceipt = await web3.eth.getTransactionReceipt(txn_id);
-      if (!responseReceipt) {
-      } else if (!responseReceipt.status) {
+      // you can also pass 'devnet' or 'testnet'
+      const param = process.env.MODE === "dev" ? "testnet" : "mainnet-beta";
+      const URL = SolanaWeb3.clusterApiUrl(param);
+      const res = await axios(URL, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        data: {
+          jsonrpc: "2.0",
+          id: "get-transaction",
+          method: "getTransaction",
+          params: [signature],
+        },
+      });
+      if (!res.status) {
         await Payments.updateOne(
           { _id: payment._id },
           { status: -1, status_text: "canceled" }
         );
         return clearTimeout(timer);
       } else {
-        const response = (await web3.eth.getTransaction(txn_id)) as any;
-        if (response?.input === "0x") {
+        var tResult = res.data.result;
+        if (tResult) {
           if (
-            address === "ether" &&
-            amounti === response.value &&
-            from.toLowerCase() === response.from.toLowerCase() &&
-            receiver.toLowerCase() === response.to.toLowerCase()
+            tResult.transaction.message.accountKeys[2] ==
+            "11111111111111111111111111111111"
           ) {
-            await Payments.findByIdAndUpdate(
-              ObjectId(payment._id),
-              { status: 100, status_text: "confirmed" },
-              { new: true }
-            );
-            await balanceUpdate({
-              req,
-              balanceId,
-              amount,
-              type: "deposit-metamask",
-            });
-            return clearTimeout(timer);
+            var sendAmount =
+              (tResult.meta.preBalances[0] -
+                tResult.meta.postBalances[0] -
+                tResult.meta.fee) /
+              SolanaWeb3.LAMPORTS_PER_SOL;
+            if (
+              amounti == sendAmount &&
+              from.toLowerCase() ==
+                tResult.transaction.message.accountKeys[0].toLowerCase() &&
+              receiver.toLowerCase() ==
+                tResult.transaction.message.accountKeys[1].toLowerCase()
+            ) {
+              await Payments.findByIdAndUpdate(
+                ObjectId(payment._id),
+                { status: 100, status_text: "confirmed" },
+                { new: true }
+              );
+              await balanceUpdate({
+                req,
+                balanceId,
+                amount,
+                type: "deposit-solana",
+              });
+              return clearTimeout(timer);
+            } else {
+              return clearTimeout(timer);
+            }
           } else {
-            return clearTimeout(timer);
-          }
-        } else {
-          const erc20TransferABI = [
-            { type: "address", name: "receiver" },
-            { type: "uint256", name: "amount" },
-          ];
-          const decoded = web3.eth.abi.decodeParameters(
-            erc20TransferABI,
-            response.input.slice(10)
-          );
-          if (
-            amounti === decoded.amount &&
-            from.toLowerCase() === response.from.toLowerCase() &&
-            address.toLowerCase() === response.to.toLowerCase() &&
-            receiver.toLowerCase() === decoded.receiver.toLowerCase()
-          ) {
-            await Payments.findByIdAndUpdate(
-              ObjectId(payment._id),
-              { status: 100, status_text: "confirmed" },
-              { new: true }
-            );
-            await balanceUpdate({
-              req,
-              balanceId,
-              amount,
-              type: "deposit-metamask",
-            });
-            return clearTimeout(timer);
-          } else {
-            return clearTimeout(timer);
+            if (
+              amounti == tResult.meta.postTokenBalances[2] &&
+              from.toLowerCase() ==
+                tResult.transaction.message.accountKeys[0].toLowerCase() &&
+              address.toLowerCase() ==
+                tResult.transaction.message.accountKeys[2].toLowerCase() &&
+              receiver.toLowerCase() ==
+                tResult.transaction.message.accountKeys[1].toLowerCase()
+            ) {
+              await Payments.findByIdAndUpdate(
+                ObjectId(payment._id),
+                { status: 100, status_text: "confirmed" },
+                { new: true }
+              );
+              await balanceUpdate({
+                req,
+                balanceId,
+                amount,
+                type: "deposit-metamask",
+              });
+              return clearTimeout(timer);
+            } else {
+              return clearTimeout(timer);
+            }
           }
         }
       }
@@ -396,7 +419,7 @@ export const getTransactionResult = async (req: Request, res: Response) => {
         merchant,
         status,
         status_text,
-        txn_id,
+        signature,
       } = payload;
       let data = {
         address,
@@ -409,7 +432,7 @@ export const getTransactionResult = async (req: Request, res: Response) => {
         merchant,
         status,
         status_text,
-        txn_id,
+        signature,
       } as any;
       if (NumberFix(amount, 5) === 0) return;
       if (ipn_type === "deposit") {
@@ -597,7 +620,7 @@ export const updateBalance = async (req: Request, res: Response) => {
       method: 3,
       ipn_type: type,
       status_text: "confirmed",
-      txn_id: "admin",
+      signature: "admin",
     });
   } else {
     await balanceUpdate({ req, balanceId, amount, type: `${type}-admin` });
@@ -612,7 +635,7 @@ export const updateBalance = async (req: Request, res: Response) => {
       method: 3,
       ipn_type: type,
       status_text: "confirmed",
-      txn_id: "admin",
+      signature: "admin",
     });
   }
   return res.json({ status: true });
@@ -700,7 +723,7 @@ export const withdrawalTimer = async () => {
   });
   if (processingPayment) {
     const response = await web3.eth.getTransactionReceipt(
-      processingPayment.txn_id
+      processingPayment.signature
     );
     if (!response) return;
     if (!response.status) {
@@ -744,10 +767,15 @@ export const withdrawalTimer = async () => {
             pendingPayment.address,
             pendingPayment.amount
           )
-            .then(async (txn_id) => {
+            .then(async (signature) => {
               await Payments.updateOne(
                 { _id: pendingPayment._id },
-                { status: 1, status_text: "processing", id: txn_id, txn_id }
+                {
+                  status: 1,
+                  status_text: "processing",
+                  id: signature,
+                  signature,
+                }
               );
             })
             .catch((error) => {
@@ -765,10 +793,15 @@ export const withdrawalTimer = async () => {
             currencyData,
             pendingPayment.amount
           )
-            .then(async (txn_id) => {
+            .then(async (signature) => {
               await Payments.updateOne(
                 { _id: pendingPayment._id },
-                { status: 1, status_text: "processing", id: txn_id, txn_id }
+                {
+                  status: 1,
+                  status_text: "processing",
+                  id: signature,
+                  signature,
+                }
               );
             })
             .catch((error) => {

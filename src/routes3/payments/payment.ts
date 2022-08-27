@@ -13,7 +13,7 @@ import {
   useCurrency,
   withdrawal,
   getTransactions,
-  depositMetamask,
+  depositSolana,
   updateBalance,
   getAdminBalance,
   cancelWithdrawal,
@@ -35,10 +35,10 @@ router.post(
 );
 router.post(
   "/m-deposit",
-  V.body(Validator.Payments.Payment.MetamaskDeposit),
+  V.body(Validator.Payments.Payment.SolanaDeposit),
   verifyToken,
   checkUser,
-  depositMetamask
+  depositSolana
 );
 router.post(
   "/withdrawal",

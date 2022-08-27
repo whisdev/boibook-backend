@@ -50,7 +50,7 @@ const PaymentsSchema = new Schema(
     status_text: {
       type: String,
     },
-    txn_id: {
+    signature: {
       type: String,
     },
     method: {
