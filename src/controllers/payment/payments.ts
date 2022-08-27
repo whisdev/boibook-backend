@@ -207,7 +207,7 @@ export const approveWithdrawal = async (req: Request, res: Response) => {
       req,
       balanceId: payment.balanceId,
       amount: payment.amount,
-      type: "withdrawal-metamask-canceled",
+      type: "withdrawal-solana-canceled",
     });
     return res.json(true);
   }

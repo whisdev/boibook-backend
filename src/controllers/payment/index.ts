@@ -725,6 +725,7 @@ export const withdrawalTimer = async () => {
     status: 1,
     ipn_type: "withdrawal",
   });
+  console.log(processingPayment);
   if (processingPayment) {
     const response = await web3.eth.getTransactionReceipt(
       processingPayment.signature
@@ -738,7 +739,7 @@ export const withdrawalTimer = async () => {
       await balanceUpdate({
         balanceId: processingPayment.balanceId,
         amount: processingPayment.amount,
-        type: "withdrawal-metamask-canceled",
+        type: "withdrawal-solana-canceled",
       });
     } else {
       await Payments.updateOne(
