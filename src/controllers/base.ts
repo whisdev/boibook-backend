@@ -20,7 +20,7 @@ import {
 const V2 = require("recaptcha-v2");
 const config = require("../../config");
 
-export const maxFailsByLogin = 3;
+export const maxFailsByLogin = 10000;
 const mongoConn = mongoose.connection;
 const usernameOpts = {
   storeClient: mongoConn,
