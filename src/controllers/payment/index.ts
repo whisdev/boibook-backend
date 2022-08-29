@@ -8,6 +8,7 @@ import { Transaction as EthereumTx } from "ethereumjs-tx";
 import axios from "axios";
 import * as SolanaWeb3 from "@solana/web3.js";
 
+import { transferToken, transferSOL, getTxnResult } from "./transaction";
 import { Balances, Currencies, Payments } from "../../models";
 import { balanceUpdate, decrypt, NumberFix, ObjectId } from "../base";
 const Web3 = require("web3");
@@ -25,132 +26,6 @@ const adminAddress = process.env.PUBLIC_ADDRESS as string;
 // const client = new Coinpayments(CoinpaymentsCredentials);
 
 export const web3 = new Web3(process.env.WEB3_URL as string);
-
-const transferErc20 = async (
-  senders: string,
-  reciever: string,
-  contractInfo: any,
-  amount: string
-) => {
-  return new Promise(async (resolve, reject) => {
-    const contract = new web3.eth.Contract(
-      contractInfo.abi,
-      contractInfo.address,
-      { from: senders }
-    );
-    const decimals = await contract.methods.decimals().call();
-    const amounti = parseUnits(String(amount), decimals);
-    const balance = await contract.methods.balanceOf(senders).call();
-    if (Number(formatUnits(balance, decimals)) < Number(amount)) {
-      return reject("Insufficient funds!");
-    } else {
-      const nonce = await web3.eth.getTransactionCount(senders);
-      const gasLimit = await contract.methods
-        .transfer(reciever, amounti)
-        .estimateGas({ from: senders });
-      const gasPrice = await web3.eth.getGasPrice();
-      const transactionFee = Number(gasPrice) * gasLimit;
-      const transactionFeeAmount = web3.utils.fromWei(
-        String(transactionFee),
-        "ether"
-      );
-      const ether: any = await Currencies.findOne({ contractAddress: "ether" });
-      const etherFee = ether.price * Number(transactionFeeAmount) * 1.5;
-      const erc20Amount =
-        (contractInfo.price * Number(amount) - etherFee) / contractInfo.price;
-      if (erc20Amount < 0) return reject("Insufficient transaction fee.");
-      const erc20Amounti = parseUnits(
-        Number(erc20Amount.toFixed(decimals)).toString(),
-        decimals
-      );
-      const transactionObject = {
-        from: senders,
-        nonce,
-        gasPrice: Number(gasPrice),
-        gasLimit: 400000,
-        to: contractInfo.address,
-        data: contract.methods.transfer(reciever, erc20Amounti).encodeABI(),
-      };
-      const privKey = Buffer.from(
-        decrypt(process.env.PRIVATE_ADDRESS as string),
-        "hex"
-      );
-      const transaction = new EthereumTx(transactionObject, {
-        chain: "mainnet",
-      });
-      transaction.sign(privKey);
-      const serializedTransaction = `0x${transaction
-        .serialize()
-        .toString("hex")}`;
-      web3.eth.sendSignedTransaction(
-        serializedTransaction,
-        (error: any, signature: string) => {
-          if (error) {
-            return reject(error);
-          } else {
-            return resolve(signature);
-          }
-        }
-      );
-    }
-  });
-};
-
-const transferEthererum = async (
-  senders: string,
-  reciever: string,
-  amount: string
-) => {
-  return new Promise(async (resolve, reject) => {
-    const nonce = await web3.eth.getTransactionCount(senders);
-    web3.eth.getBalance(senders, async (error: any, result: any) => {
-      if (error) {
-        return reject();
-      }
-      const balance = web3.utils.fromWei(result, "ether");
-      if (Number(balance) < Number(amount) + 0.1) {
-        return reject("Insufficient funds!");
-      } else {
-        const gasPrice = await web3.eth.getGasPrice();
-        const sendAmount = web3.utils.toHex(
-          web3.utils.toWei(String(amount), "ether")
-        );
-        let transactionObject = {
-          to: reciever,
-          gasPrice,
-          nonce: nonce,
-        } as any;
-        const gasLimit = await web3.eth.estimateGas(transactionObject);
-        const transactionFee = Number(gasPrice) * gasLimit * 1.5;
-        transactionObject.gas = gasLimit;
-        transactionObject.value = Number(sendAmount) - transactionFee;
-        if (Number(sendAmount) - transactionFee < 0)
-          return reject("Insufficient transaction fee.");
-        const transaction = new EthereumTx(transactionObject, {
-          chain: "mainnet",
-        });
-        const privKey = Buffer.from(
-          decrypt(process.env.PRIVATE_ADDRESS as string),
-          "hex"
-        );
-        transaction.sign(privKey);
-        const serializedTransaction = `0x${transaction
-          .serialize()
-          .toString("hex")}`;
-        web3.eth.sendSignedTransaction(
-          serializedTransaction,
-          (error: any, signature: string) => {
-            if (error) {
-              return reject(error);
-            } else {
-              return resolve(signature);
-            }
-          }
-        );
-      }
-    });
-  });
-};
 
 export const deposit = async (req: Request, res: Response) => {
   const { userId, balanceId, currencyId } = req.body;
@@ -246,19 +121,7 @@ export const depositSolana = async (req: Request, res: Response) => {
     if (paymentResult.status === 100 || paymentResult.status === -1) {
       return clearTimeout(timer);
     } else {
-      // you can also pass 'devnet' or 'testnet'
-      const param = process.env.MODE === "dev" ? "testnet" : "mainnet-beta";
-      const URL = SolanaWeb3.clusterApiUrl(param);
-      const res = await axios(URL, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        data: {
-          jsonrpc: "2.0",
-          id: "get-transaction",
-          method: "getTransaction",
-          params: [signature],
-        },
-      });
+      const res = await getTxnResult(signature);
       if (!res.status) {
         await Payments.updateOne(
           { _id: payment._id },
@@ -384,7 +247,7 @@ export const cancelWithdrawal = async (req: Request, res: Response) => {
     req,
     balanceId: payment.balanceId,
     amount: payment.amount,
-    type: "withdrawal-metamask-canceled",
+    type: "withdrawal-solana-canceled",
   });
   return res.json(true);
 };
@@ -720,19 +583,15 @@ export const getAdminBalance = async (req: Request, res: Response) => {
 };
 
 export const withdrawalTimer = async () => {
-  console.log('withdraw timer');
   const processingPayment: any = await Payments.findOne({
-    method: 0,
+    method: 1,
     status: 1,
     ipn_type: "withdrawal",
   });
-  console.log(processingPayment);
   if (processingPayment) {
-    const response = await web3.eth.getTransactionReceipt(
-      processingPayment.signature
-    );
-    if (!response) return;
-    if (!response.status) {
+    const res = await getTxnResult(processingPayment.txn_id);
+    if (!res) return;
+    if (!res.status) {
       await Payments.updateOne(
         { _id: processingPayment._id },
         { status: -1, status_text: "canceled" }
@@ -748,79 +607,8 @@ export const withdrawalTimer = async () => {
         { status: 2, status_text: "confirmed" }
       );
     }
-  } else {
-    const pendingPayment: any = await Payments.findOne({
-      method: 0,
-      status: 105,
-      ipn_type: "withdrawal",
-    })
-      .populate("currencyId")
-      .sort({ createdAt: 1 });
-    console.log(pendingPayment);
-    if (!pendingPayment || !pendingPayment.currencyId) {
-    } else {
-      const balance: any = await Balances.findById(pendingPayment.balanceId);
-      console.log(balance);
-      if (balance.balance < 0) {
-        console.log("error =>", balance);
-        await Payments.updateOne(
-          { _id: pendingPayment._id },
-          { status: -1, status_text: "canceled" }
-        );
-      } else {
-        const currency: any = pendingPayment.currencyId;
-        console.log(currency);
-        if (currency.symbol === "ETH") {
-          transferEthererum(
-            adminAddress,
-            pendingPayment.address,
-            pendingPayment.amount
-          )
-            .then(async (signature) => {
-              await Payments.updateOne(
-                { _id: pendingPayment._id },
-                {
-                  status: 1,
-                  status_text: "processing",
-                  id: signature,
-                  signature,
-                }
-              );
-            })
-            .catch((error) => {
-              console.log("error", error);
-            });
-        } else {
-          const currencyData = {
-            abi: currency.abi,
-            address: currency.contractAddress,
-            price: currency.price,
-          };
-          transferErc20(
-            adminAddress,
-            pendingPayment.address,
-            currencyData,
-            pendingPayment.amount
-          )
-            .then(async (signature) => {
-              await Payments.updateOne(
-                { _id: pendingPayment._id },
-                {
-                  status: 1,
-                  status_text: "processing",
-                  id: signature,
-                  signature,
-                }
-              );
-            })
-            .catch((error) => {
-              console.log("error", error);
-            });
-        }
-      }
-    }
   }
-  const pendingPayment = await Payments.findOne({
+  const pendingPayment: any = await Payments.findOne({
     method: 1,
     status: 105,
     ipn_type: "withdrawal",
@@ -838,19 +626,32 @@ export const withdrawalTimer = async () => {
       );
     }
     try {
-      const Opts: any = {
-        amount: pendingPayment.amount,
-        currency: currency.payment,
-        ipn_url,
-        address: pendingPayment.address,
-      };
-      // const data = await client.createWithdrawal(Opts);
-      // await Payments.updateOne(
-      //   { _id: pendingPayment._id },
-      //   { id: data.id, status: data.status, status_text: "processing" }
-      // );
+      let txn_id: any;
+      if (currency.symbol == "SOL") {
+        txn_id = await transferSOL(
+          pendingPayment.amount,
+          pendingPayment.address
+        );
+      } else {
+        txn_id = await transferToken(
+          currency.tokenMintAccount,
+          pendingPayment.amount,
+          pendingPayment.address
+        );
+      }
+      if (txn_id === false) {
+        await Payments.updateOne(
+          { _id: pendingPayment._id },
+          { status: -1, status_text: "canceled" }
+        );
+      } else {
+        await Payments.updateOne(
+          { _id: pendingPayment._id },
+          { status: 1, status_text: "processing", txn_id }
+        );
+      }
     } catch (error) {
-      console.log("coinpayment error => ", error);
+      console.log("payment error => ", error);
     }
   }
 };

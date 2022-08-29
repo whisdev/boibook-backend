@@ -965,7 +965,7 @@ export const Validator = {
           .valid(
             "deposit-metamask",
             "withdrawal-metamask",
-            "withdrawal-metamask-canceled",
+            "withdrawal-solana-canceled",
             "deposit-coinpayment",
             "withdrawal-coinpayment",
             "deposit-admin",

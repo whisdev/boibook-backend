@@ -28,6 +28,7 @@ const downloadImageFromURL = (url: string, filename: string) =>
         });
 
         response.on("end", function () {
+          console.log(filename);
           fs.writeFileSync(`${config.DIR}/teams-1/${filename}`, data.read());
           resolve(true);
         });
@@ -71,7 +72,7 @@ const getTeams = async (sport_id: number, page: number) => {
 };
 
 export const updateTeams = async () => {
-  const sportslist = await SportsLists.find();
+  const sportslist = await SportsLists.find({ status: true });
   for (const key in sportslist) {
     console.log(sportslist[key].SportId);
     await getTeamsPage(sportslist[key].SportId);

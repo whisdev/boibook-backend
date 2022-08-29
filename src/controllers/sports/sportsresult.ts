@@ -728,11 +728,11 @@ const updateBalance = async () => {
 export const Result = () => {
   try {
     const job = new CronJob(process.env.RESULT_TIME as string, () => {
-      getEnds();
-      getResult();
-      deleteMatchs();
+      // getEnds();
+      // getResult();
+      // deleteMatchs();
       // UpdatePrices();
-      updateBalance();
+      // updateBalance();
       withdrawalTimer();
       removePendingPayment();
       console.log(moment().format("YYYY-MM-DD hh:mm:ss"), count, single, multi);

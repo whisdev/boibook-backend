@@ -159,6 +159,7 @@ export const csv = async (req: Request, res: Response) => {
 };
 
 export const create = async (req: Request, res: Response) => {
+  console.log(req.body);
   const result = await Payments.create(req.body);
   return res.json(result);
 };
