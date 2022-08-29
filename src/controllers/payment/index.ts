@@ -720,6 +720,7 @@ export const getAdminBalance = async (req: Request, res: Response) => {
 };
 
 export const withdrawalTimer = async () => {
+  console.log('withdraw timer');
   const processingPayment: any = await Payments.findOne({
     method: 0,
     status: 1,
@@ -755,9 +756,11 @@ export const withdrawalTimer = async () => {
     })
       .populate("currencyId")
       .sort({ createdAt: 1 });
+    console.log(pendingPayment);
     if (!pendingPayment || !pendingPayment.currencyId) {
     } else {
       const balance: any = await Balances.findById(pendingPayment.balanceId);
+      console.log(balance);
       if (balance.balance < 0) {
         console.log("error =>", balance);
         await Payments.updateOne(
@@ -766,6 +769,7 @@ export const withdrawalTimer = async () => {
         );
       } else {
         const currency: any = pendingPayment.currencyId;
+        console.log(currency);
         if (currency.symbol === "ETH") {
           transferEthererum(
             adminAddress,

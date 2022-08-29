@@ -28,7 +28,7 @@ const downloadImageFromURL = (url: string, filename: string) =>
         });
 
         response.on("end", function () {
-          fs.writeFileSync(`${config.DIR}/teams/${filename}`, data.read());
+          fs.writeFileSync(`${config.DIR}/teams-1/${filename}`, data.read());
           resolve(true);
         });
       })
@@ -84,5 +84,5 @@ try {
     updateTeams();
   });
 } catch (error) {
-  console.log(`Matchs1`, error);
+  console.log(`Matchs`, error);
 }
