@@ -37,6 +37,7 @@ log/
 rlog/
 upload/
 teams/
+teams-1/
 
 # Dependency directories
 node_modules/
