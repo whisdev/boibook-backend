@@ -13,19 +13,16 @@ import {
   createTransferCheckedInstruction,
 } from "@solana/spl-token";
 import * as bs58 from "bs58";
-import * as SolanaWeb3 from "@solana/web3.js";
 import axios from "axios";
 
 const param = process.env.MODE === "dev" ? "testnet" : "mainnet-beta";
 const connection = new Connection(clusterApiUrl(param));
+const URL = clusterApiUrl(param);
 
 const PRIVKEY: any = process.env.PRIVKEY;
 const txWallet = Keypair.fromSecretKey(bs58.decode(PRIVKEY));
 
 export const getTxnResult = async (signature: string) => {
-  // you can also pass 'testnet' or 'mainnet-beta'
-  const param = process.env.MODE === "dev" ? "testnet" : "mainnet-beta";
-  const URL = SolanaWeb3.clusterApiUrl(param);
   const res = await axios(URL, {
     method: "POST",
     headers: { "content-type": "application/json" },

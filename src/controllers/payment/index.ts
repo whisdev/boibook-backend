@@ -94,8 +94,8 @@ export const depositSolana = async (req: Request, res: Response) => {
   if (!balances) {
     return res.status(400).json("Invalid field!");
   }
-  // const result = await Payments.findOne({ signature });
-  // if (result) return res.json({});
+  const result = await Payments.findOne({ signature });
+  if (result) return res.json({});
   const payment: any = await Payments.findOneAndUpdate(
     { signature },
     {
@@ -163,18 +163,20 @@ export const depositSolana = async (req: Request, res: Response) => {
               return clearTimeout(timer);
             }
           } else {
-            var sendAmount =
-              (Number(tResult.meta.postTokenBalances[0].uiTokenAmount.amount) -
-                Number(tResult.meta.preTokenBalances[0].uiTokenAmount.amount)) /
-              SolanaWeb3.LAMPORTS_PER_SOL;
+            const sendAmount =
+              Math.abs(
+                Number(tResult.meta.preTokenBalances[0].uiTokenAmount.amount) -
+                  Number(tResult.meta.postTokenBalances[0].uiTokenAmount.amount)
+              ) /
+              10 ** tResult.meta.preTokenBalances[0].uiTokenAmount.decimals;
             if (
               amounti == sendAmount &&
               from.toLowerCase() ==
-                tResult.meta.postTokenBalances[1].owner.toLowerCase() &&
+                tResult.meta.preTokenBalances[0].owner.toLowerCase() &&
               address.toLowerCase() ==
-                tResult.meta.postTokenBalances[0].mint.toLowerCase() &&
+                tResult.meta.preTokenBalances[0].mint.toLowerCase() &&
               receiver.toLowerCase() ==
-                tResult.meta.postTokenBalances[0].owner.toLowerCase()
+                tResult.meta.preTokenBalances[1].owner.toLowerCase()
             ) {
               await Payments.findByIdAndUpdate(
                 ObjectId(payment._id),
@@ -185,7 +187,7 @@ export const depositSolana = async (req: Request, res: Response) => {
                 req,
                 balanceId,
                 amount,
-                type: "deposit-metamask",
+                type: "deposit-solana",
               });
               return clearTimeout(timer);
             } else {

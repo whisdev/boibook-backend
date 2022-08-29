@@ -17,12 +17,12 @@ import {
 } from "../../controllers/users";
 const router = routerx();
 
-const loginLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+// const loginLimiter = rateLimit({
+//   windowMs: 60 * 60 * 1000,
+//   max: 10,
+//   standardHeaders: true,
+//   legacyHeaders: false,
+// });
 
 const forgotLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
@@ -32,11 +32,15 @@ const forgotLimiter = rateLimit({
 });
 
 if (process.env.MODE === "dev") {
-  router.post("/signin", loginLimiter, signin);
+  router.post(
+    "/signin",
+    // loginLimiter,
+    signin
+  );
 } else {
   router.post(
     "/signin",
-    loginLimiter,
+    // loginLimiter,
     V.body(Validator.Users.Auth.Signin),
     signin
   );
@@ -44,7 +48,7 @@ if (process.env.MODE === "dev") {
 
 router.post(
   "/signup",
-  loginLimiter,
+  // loginLimiter,
   V.body(Validator.Users.Auth.Signup),
   signup
 );
@@ -58,32 +62,32 @@ router.post("/signout", V.body(Validator.UserId), signout);
 
 router.post(
   "/a-check",
-  loginLimiter,
+  // loginLimiter,
   V.body(Validator.Users.Auth.CheckAddress),
   checkAddress
 );
 router.post(
   "/a-signin",
-  loginLimiter,
+  // loginLimiter,
   V.body(Validator.Users.Auth.SigninAddress),
   signinAddress
 );
 router.post(
   "/a-signup",
-  loginLimiter,
+  // loginLimiter,
   V.body(Validator.Users.Auth.SignupAddress),
   joinAddress
 );
 
 router.post(
   "/r-password",
-  loginLimiter,
+  // loginLimiter,
   V.body(Validator.Users.Auth.PasswordReset),
   passwordReset
 );
 router.post(
   "/c-password",
-  loginLimiter,
+  // loginLimiter,
   V.body(Validator.Users.Auth.ChangePassword),
   verifyToken,
   checkUser,
