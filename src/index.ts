@@ -11,7 +11,7 @@ import * as session from "express-session";
 import * as useragent from "express-useragent";
 import * as methodOverride from "method-override";
 import helmet from "helmet";
-import rateLimit from "express-rate-limit";
+// import rateLimit from "express-rate-limit";
 import { createStream } from "rotating-file-stream";
 import socket from "./socket";
 import routes1 from "./routes1";
@@ -73,31 +73,38 @@ if (process.env.MODE === "dev") {
   app.use(checkUrl);
 }
 
-const apiV1Limiter = rateLimit({
-  windowMs: 5 * 1000,
-  max: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+// const apiV1Limiter = rateLimit({
+//   windowMs: 5 * 1000,
+//   max: 10,
+//   standardHeaders: true,
+//   legacyHeaders: false,
+// });
 
-const apiV2Limiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 1000,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+// const apiV2Limiter = rateLimit({
+//   windowMs: 60 * 60 * 1000,
+//   max: 1000,
+//   standardHeaders: true,
+//   legacyHeaders: false,
+// });
 
-const apiV3Limiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 3000,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+// const apiV3Limiter = rateLimit({
+//   windowMs: 60 * 60 * 1000,
+//   max: 3000,
+//   standardHeaders: true,
+//   legacyHeaders: false,
+// });
 
-app.use("/api/v1/", apiV1Limiter, routes1);
-app.use("/api/v2/", apiV2Limiter, routes2);
-app.use("/api/v3/", apiV3Limiter, routes3);
-app.get("*", apiV2Limiter, (req: express.Request, res: express.Response) =>
+// app.use("/api/v1/", apiV1Limiter, routes1);
+// app.use("/api/v2/", apiV2Limiter, routes2);
+// app.use("/api/v3/", apiV3Limiter, routes3);
+// app.get("*", apiV2Limiter, (req: express.Request, res: express.Response) =>
+//   res.sendFile(`${config.DIR}/boibook/index.html`)
+// );
+
+app.use("/api/v1/", routes1);
+app.use("/api/v2/", routes2);
+app.use("/api/v3/", routes3);
+app.get("*", (req: express.Request, res: express.Response) =>
   res.sendFile(`${config.DIR}/boibook/index.html`)
 );
 
