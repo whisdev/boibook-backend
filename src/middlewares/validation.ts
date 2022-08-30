@@ -1061,4 +1061,29 @@ export const Validator = {
       }),
     },
   },
+  Advertisements: {
+    List: Joi.object({
+      pageSize: Joi.number().min(1).max(100).optional(),
+      page: Joi.number().min(0).optional(),
+    }),
+    Create: Joi.object({
+      order: Joi.number().required(),
+      title: Joi.string().required(),
+      uri: Joi.string().required(),
+      status: Joi.boolean().required(),
+    }),
+    Update: Joi.object({
+      _id: Joi.string().min(24).max(24).optional(),
+      __v: Joi.number().optional(),
+      createdAt: Joi.date().optional(),
+      updatedAt: Joi.date().optional(),
+      order: Joi.number().required(),
+      title: Joi.string().required(),
+      uri: Joi.string().required(),
+      status: Joi.boolean().required(),
+    }),
+    Delete: Joi.object({
+      _id: Joi.string().min(24).max(24).optional(),
+    }),
+  },
 };

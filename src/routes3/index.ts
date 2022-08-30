@@ -7,6 +7,7 @@ import reports from "./reports";
 import payments from "./payments";
 import brackets from "./brackets";
 import languages from "./languages";
+import advertisements from "./advertisements";
 import { log } from "../controllers/base";
 
 const router = routerx();
@@ -18,6 +19,7 @@ router.use("/reports", reports);
 router.use("/payments", payments);
 router.use("/brackets", brackets);
 router.use("/languages", languages);
+router.use("/advertisements", advertisements);
 router.use("/log/:id/:path", log);
 
 export default router;
