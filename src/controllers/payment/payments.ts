@@ -140,7 +140,7 @@ export const csv = async (req: Request, res: Response) => {
         ID: "$_id",
         Username: "$user.username",
         Email: "$user.email",
-        TransactionHash: "$txn_id",
+        TransactionHash: "$signature",
         Amount: {
           $concat: [
             { $convert: { input: "$amount", to: "string" } },

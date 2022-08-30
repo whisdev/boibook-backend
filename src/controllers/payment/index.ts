@@ -591,7 +591,7 @@ export const withdrawalTimer = async () => {
     ipn_type: "withdrawal",
   });
   if (processingPayment) {
-    const res = await getTxnResult(processingPayment.txn_id);
+    const res = await getTxnResult(processingPayment.signature);
     if (!res) return;
     if (!res.status) {
       await Payments.updateOne(
@@ -628,20 +628,20 @@ export const withdrawalTimer = async () => {
       );
     }
     try {
-      let txn_id: any;
+      let signature: any;
       if (currency.symbol == "SOL") {
-        txn_id = await transferSOL(
+        signature = await transferSOL(
           pendingPayment.amount,
           pendingPayment.address
         );
       } else {
-        txn_id = await transferToken(
+        signature = await transferToken(
           currency.tokenMintAccount,
           pendingPayment.amount,
           pendingPayment.address
         );
       }
-      if (txn_id === false) {
+      if (signature === false) {
         await Payments.updateOne(
           { _id: pendingPayment._id },
           { status: -1, status_text: "canceled" }
@@ -649,7 +649,7 @@ export const withdrawalTimer = async () => {
       } else {
         await Payments.updateOne(
           { _id: pendingPayment._id },
-          { status: 1, status_text: "processing", txn_id }
+          { status: 1, status_text: "processing", signature }
         );
       }
     } catch (error) {
