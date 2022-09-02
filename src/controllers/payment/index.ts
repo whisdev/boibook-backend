@@ -1,31 +1,18 @@
-import Coinpayments from "coinpayments";
-import * as request from "request";
 import * as moment from "moment-timezone";
 import { Request, Response } from "express";
-import { parseUnits, formatUnits } from "@ethersproject/units";
-import { Transaction as EthereumTx } from "ethereumjs-tx";
 
-import axios from "axios";
 import * as SolanaWeb3 from "@solana/web3.js";
 
-import { transferToken, transferSOL, getTxnResult } from "./transaction";
+import {
+  transferToken,
+  transferSOL,
+  getTxnResult,
+  getSOLbalance,
+} from "./transaction";
 import { Balances, Currencies, Payments } from "../../models";
-import { balanceUpdate, decrypt, NumberFix, ObjectId } from "../base";
-const Web3 = require("web3");
-const IPN = require("coinpayments-ipn");
+import { balanceUpdate, ObjectId } from "../base";
 
-const ipn_url = `${
-  process.env.MODE === "dev" ? process.env.DEV_API_URL : process.env.API_URL
-}${process.env.IPN_URL}`;
-const adminAddress = process.env.PUBLIC_ADDRESS as string;
-
-// const CoinpaymentsCredentials = {
-//   key: process.env.PUBLIC_KEY as string,
-//   secret: decrypt(process.env.PRIVATE_KEY as string),
-// };
-// const client = new Coinpayments(CoinpaymentsCredentials);
-
-export const web3 = new Web3(process.env.WEB3_URL as string);
+export const ADMINPUB: string = "8Myhky6nWVJFeNkcBH3FE9i29KqV4qsD8reook3AUqYk";
 
 export const deposit = async (req: Request, res: Response) => {
   const { userId, balanceId, currencyId } = req.body;
@@ -254,100 +241,6 @@ export const cancelWithdrawal = async (req: Request, res: Response) => {
   return res.json(true);
 };
 
-export const getTransactionResult = async (req: Request, res: Response) => {
-  if (
-    !req.get(`hmac`) ||
-    !req.body ||
-    !req.body.ipn_mode ||
-    req.body.ipn_mode !== `hmac` ||
-    process.env.MERCHANT_ID !== req.body.merchant
-  ) {
-    return res.send("error");
-  }
-  const hmac = req.get(`hmac`);
-  const ipnSecret = process.env.IPN_SECRET;
-  const payload = req.body;
-  let isValid;
-  try {
-    isValid = IPN.verify(hmac, ipnSecret, payload);
-  } catch (e) {
-    return res.send("error");
-  }
-  if (!payload?.amount) return console.log(payload);
-  if (isValid) {
-    try {
-      const {
-        label,
-        address,
-        amount,
-        amounti,
-        currency,
-        ipn_id,
-        ipn_mode,
-        ipn_type,
-        merchant,
-        status,
-        status_text,
-        signature,
-      } = payload;
-      let data = {
-        address,
-        amount,
-        amounti,
-        currency,
-        ipn_id,
-        ipn_mode,
-        ipn_type,
-        merchant,
-        status,
-        status_text,
-        signature,
-      } as any;
-      if (NumberFix(amount, 5) === 0) return;
-      if (ipn_type === "deposit") {
-        if (!amount || !payload.fee) return console.log(`fee`, payload);
-        data.id = payload.deposit_id;
-        data.amount = amount - payload.fee;
-        data.status_text = status === "100" ? "confirmed" : data.status_text;
-        const result: any = await Payments.findOne({ _id: ObjectId(label) });
-        if (result && result.status !== 100) {
-          await Payments.updateOne({ _id: ObjectId(label) }, data);
-          if (status === "100") {
-            balanceUpdate({
-              req,
-              balanceId: result.balanceId,
-              amount: amount - payload.fee,
-              type: "deposit-coinpayment",
-            });
-          }
-        }
-      } else if (ipn_type === "withdrawal") {
-        data.id = payload.id;
-        if (status === "2") {
-          data.status_text = "confirmed";
-        } else if (status === "-1") {
-          data.status_text = "canceled";
-        } else if (status === "-6") {
-          data.status_text = "canceled";
-        } else {
-          console.log(data.status_text);
-        }
-        const result = await Payments.findOne({ id: payload.id });
-        if (result && result.status !== 2) {
-          await Payments.updateOne({ id: payload.id }, data);
-        }
-      } else {
-        console.log("isValid deposit withdrawal error");
-      }
-    } catch (error) {
-      console.log("isValid", error);
-      return res.json(error);
-    }
-  } else {
-    console.log("hmac error");
-  }
-};
-
 export const getTransactions = async (req: Request, res: Response) => {
   const { userId } = req.body;
   const result = await Payments.find({
@@ -511,77 +404,30 @@ export const updateBalance = async (req: Request, res: Response) => {
 };
 
 export const getAdminBalance = async (req: Request, res: Response) => {
-  const address1 = "0xe197bD957B08D07E55D65A362780C7845b2CbA12";
-  const address2 = process.env.PUBLIC_ADDRESS as string;
-  let balances;
-  try {
-    // balances = await client.balances();
-  } catch (error) {
-    console.log(error);
-  }
+  let solana: any = {};
   const currencies = await Currencies.find({ status: true }).select({
     _id: 0,
-    abi: 1,
     symbol: 1,
-    price: 1,
-    contractAddress: 1,
-    type: 1,
-    payment: 1,
+    tokenMintAccount: 1,
     icon: 1,
   });
-  let metamask = {} as any;
-  let coinpayment = {} as any;
-  let mtotal1 = 0;
-  let mtotal2 = 0;
-  let ctotal = 0;
+  let total = 0;
+
   for (const i in currencies) {
     const currency: any = currencies[i];
-    if (currency.type === 2 || currency.type === 0) {
-      if (currency.contractAddress !== "ether") {
-        const contract = new web3.eth.Contract(
-          currency.abi,
-          currency.contractAddress
-        );
-        const balance1 = await contract.methods.balanceOf(address1).call();
-        const balance2 = await contract.methods.balanceOf(address2).call();
-        const decimals = await contract.methods.decimals().call();
-        const amount1 = Number(formatUnits(balance1, decimals));
-        const amount2 = Number(formatUnits(balance2, decimals));
-        metamask[currency.symbol] = {
-          balance1: amount1,
-          balance2: amount2,
-          usdbalance1: amount1 * currency.price,
-          usdbalance2: amount2 * currency.price,
-        };
-        mtotal1 += amount1 * currency.price;
-        mtotal2 += amount2 * currency.price;
-      } else {
-        const balance1 = await web3.eth.getBalance(address1);
-        const balance2 = await web3.eth.getBalance(address2);
-        const amount1 = Number(formatUnits(balance1, 18));
-        const amount2 = Number(formatUnits(balance2, 18));
-        metamask[currency.symbol] = {
-          balance1: amount1,
-          balance2: amount2,
-          usdbalance1: amount1 * currency.price,
-          usdbalance2: amount2 * currency.price,
-        };
-        mtotal1 += amount1 * currency.price;
-        mtotal2 += amount2 * currency.price;
-      }
-    }
-    if (balances) {
-      // const balance = balances[currency.payment];
-      // if (balance) {
-      //   coinpayment[currency.symbol] = {
-      //     balance: Number(balance.balancef),
-      //     usdbalance: Number(balance.balancef) * currency.price,
-      //   };
-      //   ctotal += Number(balance.balancef) * currency.price;
-      // }
-    }
+    const balance = await getSOLbalance(ADMINPUB, currency);
+    const usdbalance = balance * 1;
+    solana[currency.symbol] = {
+      usdbalance,
+      balance,
+    };
+    total += balance;
   }
-  return res.json({ metamask, coinpayment, ctotal, mtotal1, mtotal2 });
+
+  return res.json({
+    solana,
+    total,
+  });
 };
 
 export const withdrawalTimer = async () => {

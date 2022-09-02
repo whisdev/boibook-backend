@@ -102,3 +102,32 @@ export const transferToken = async (
 
   return false;
 };
+
+export const getSOLbalance = async (walletAddress: string, currency: any) => {
+  const ownerPubkey = new PublicKey(walletAddress);
+  let tokenBalance: any;
+  try {
+    if (currency.symbol === "SOL") {
+      tokenBalance =
+        (await connection.getBalance(ownerPubkey)) / LAMPORTS_PER_SOL;
+    } else {
+      const mintPubkey = new PublicKey(currency.tokenMintAccount);
+      const ownerTokenAccount: any = await getOrCreateAssociatedTokenAccount(
+        connection,
+        txWallet,
+        mintPubkey,
+        ownerPubkey
+      );
+
+      const tokenAccountBalance: any = await connection.getTokenAccountBalance(
+        ownerTokenAccount.address
+      );
+      tokenBalance =
+        tokenAccountBalance.value.amount /
+        10 ** tokenAccountBalance.value.decimals;
+    }
+  } catch (error) {
+    tokenBalance = 0;
+  }
+  return tokenBalance;
+};

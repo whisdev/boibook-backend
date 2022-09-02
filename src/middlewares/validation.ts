@@ -52,7 +52,7 @@ export const Validator = {
       SignupAddress: Joi.object({
         publicAddress: Joi.string().min(44).max(44).required(),
         // iReferral: Joi.string().allow("", null).optional(),
-        // rReferral: Joi.string().allow("", null).optional(),
+        rReferral: Joi.string().allow("", null).optional(),
       }),
       Forgot: Joi.object({
         email: Joi.string().email().required(),

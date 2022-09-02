@@ -8,7 +8,6 @@ import {
   getBalances,
   deposit,
   getCurrencies,
-  getTransactionResult,
   addRemoveCurrency,
   useCurrency,
   withdrawal,
@@ -23,7 +22,6 @@ import { V, Validator } from "../../middlewares/validation";
 const router = routerx();
 
 router.post("/getPaymentMethod", getPaymentMethod);
-router.post("/getTransactionResult", getTransactionResult);
 router.post("/getAdminBalance", verifyAdminToken, getAdminBalance);
 
 router.post(
