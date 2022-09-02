@@ -15,10 +15,21 @@ import {
 import {
   SportsBets,
   SportsBetting,
+  SportsLeagues,
   SportsLists,
   SportsMatchs,
   Users,
 } from "../../models";
+
+const updateDTManually = async () => {
+  console.log("start");
+  await SportsLeagues.updateMany({ SportId: 2 }, { status: true });
+  await SportsLeagues.updateMany({ SportId: 9 }, { status: true });
+  await SportsLeagues.updateMany({ SportId: 151 }, { status: true });
+  console.log("done");
+};
+
+updateDTManually();
 
 export const getSportsLists = async (req: Request, res: Response) => {
   const data = await SportsLists.find({ status: true });
