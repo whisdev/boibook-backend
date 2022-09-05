@@ -156,9 +156,7 @@ export const signup = async (req: Request, res: Response) => {
   if (!u_result || !b_result) {
     return res.status(400).json("error");
   } else {
-    return res.json(
-      "You have successfully created in as a user to Boibook."
-    );
+    return res.json("You have successfully created in as a user to Boibook.");
   }
 };
 

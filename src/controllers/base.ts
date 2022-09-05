@@ -165,8 +165,8 @@ export const handleBet = async ({
     const rUser: any = await Users.findOne({ iReferral: user.rReferral });
     const userId1 = ObjectId(userId);
     const userId2 = ObjectId(rUser._id);
-    const amount1 = NumberFix(amount * 0.95);
-    const amount2 = NumberFix(amount * 0.05);
+    const amount1 = NumberFix(amount);
+    const amount2 = NumberFix(rUser.pReferal || 0.02);
     const result1: any = await Balances.findOneAndUpdate(
       { userId: userId1, currency: ObjectId(currency) },
       { $inc: { balance: amount1 } },

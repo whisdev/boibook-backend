@@ -55,6 +55,10 @@ const UsersSchema = new Schema(
     country: {
       type: String,
     },
+    pReferral: {
+      type: Number,
+      default: 0.02,
+    },
     iReferral: {
       type: String,
     },
