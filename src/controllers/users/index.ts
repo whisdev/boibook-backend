@@ -42,6 +42,7 @@ const userInfo = (user: any) => {
     oddsformat: user.oddsformat,
     iReferral: user.iReferral,
     rReferral: user.rReferral,
+    pReferral: user.pReferral,
   };
 };
 
