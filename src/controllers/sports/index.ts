@@ -21,16 +21,16 @@ import {
   Users,
 } from "../../models";
 
-const updateDTManually = async () => {
-  console.log("start");
-  await Users.updateMany({}, { pReferral: 0.02 });
-  // await SportsLeagues.updateMany({ SportId: 2 }, { status: true });
-  // await SportsLeagues.updateMany({ SportId: 9 }, { status: true });
-  // await SportsLeagues.updateMany({ SportId: 151 }, { status: true });
-  console.log("done");
-};
+// const updateDTManually = async () => {
+//   console.log("start");
+//   await Users.updateMany({}, { pReferral: 0.02 });
+//   // await SportsLeagues.updateMany({ SportId: 2 }, { status: true });
+//   // await SportsLeagues.updateMany({ SportId: 9 }, { status: true });
+//   // await SportsLeagues.updateMany({ SportId: 151 }, { status: true });
+//   console.log("done");
+// };
 
-updateDTManually();
+// updateDTManually();
 
 export const getSportsLists = async (req: Request, res: Response) => {
   const data = await SportsLists.find({ status: true });
