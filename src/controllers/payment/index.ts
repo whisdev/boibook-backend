@@ -150,20 +150,21 @@ export const depositSolana = async (req: Request, res: Response) => {
               return clearTimeout(timer);
             }
           } else {
+            const preTokenB = tResult.meta.preTokenBalances;
+            const postTokenB = tResult.meta.postTokenBalances;
             const sendAmount =
-              Math.abs(
-                Number(tResult.meta.preTokenBalances[0].uiTokenAmount.amount) -
-                  Number(tResult.meta.postTokenBalances[0].uiTokenAmount.amount)
-              ) /
-              10 ** tResult.meta.preTokenBalances[0].uiTokenAmount.decimals;
+              preTokenB[0].uiTokenAmount.uiAmount -
+              postTokenB[0].uiTokenAmount.uiAmount;
+            const fromAcc = preTokenB[0].owner.toLowerCase();
+            const tokenMintAcc = preTokenB[0].mint.toLowerCase();
+            const receiverAcc = preTokenB[1].owner.toLowerCase();
             if (
               amounti == sendAmount &&
-              from.toLowerCase() ==
-                tResult.meta.preTokenBalances[0].owner.toLowerCase() &&
-              address.toLowerCase() ==
-                tResult.meta.preTokenBalances[0].mint.toLowerCase() &&
-              receiver.toLowerCase() ==
-                tResult.meta.preTokenBalances[1].owner.toLowerCase()
+              (from.toLowerCase() == fromAcc ||
+                from.toLowerCase() == receiverAcc) &&
+              address.toLowerCase() == tokenMintAcc &&
+              (receiver.toLowerCase() == fromAcc ||
+                receiver.toLowerCase() == receiverAcc)
             ) {
               await Payments.findByIdAndUpdate(
                 ObjectId(payment._id),
