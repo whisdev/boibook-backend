@@ -207,13 +207,25 @@ const getEvents = async () => {
     );
     await getUpcomingPage(
       sportslist[key].SportId,
-      moment().add(7, "days").format("YYYYMMDD")
+      moment().add(10, "days").format("YYYYMMDD")
+    );
+    await getUpcomingPage(
+      sportslist[key].SportId,
+      moment().add(5, "days").format("YYYYMMDD")
+    );
+    await getUpcomingPage(
+      sportslist[key].SportId,
+      moment().add(6, "days").format("YYYYMMDD")
+    );
+    await getUpcomingPage(
+      sportslist[key].SportId,
+      moment().add(10, "days").format("YYYYMMDD")
     );
   }
 };
 
 const getOdd = async () => {
-  const lte = Math.floor(moment().add(7, "days").valueOf() / 1000);
+  const lte = Math.floor(moment().add(10, "days").valueOf() / 1000);
   const sportsmatchs = await SportsMatchs.aggregate([
     {
       $match: {
@@ -245,7 +257,7 @@ const getOdd = async () => {
 };
 
 const getMatchEnds = async () => {
-  const lte = Math.floor(moment().add(7, "days").valueOf() / 1000);
+  const lte = Math.floor(moment().add(10, "days").valueOf() / 1000);
   const sportsmatchs = await SportsMatchs.find({
     time_status: { $ne: 1 },
     time: { $lte: lte },
@@ -466,7 +478,7 @@ const getUpcomingEvents = (sport_id: number, page: number, day: string) => {
             result.time_status != 3
           ) {
             try {
-              const date = moment().add(7, "days").valueOf();
+              const date = moment().add(10, "days").valueOf();
               const time = new Date(result.time * 1000).valueOf();
               const sportsLeagues = await SportsLeagues.findOne({
                 id: result.league.id,
@@ -492,7 +504,7 @@ const getUpcomingEvents = (sport_id: number, page: number, day: string) => {
             result.time_status != 3
           ) {
             try {
-              const date = moment().add(7, "days").valueOf();
+              const date = moment().add(10, "days").valueOf();
               const time = new Date(result.time * 1000).valueOf();
               const sportsLeagues = await SportsLeagues.findOne({
                 id: result.league.id,

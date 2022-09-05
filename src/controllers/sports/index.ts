@@ -54,7 +54,7 @@ export const getSportsMatchs = async (req: Request, res: Response) => {
   const { EventStatus, SportId } = req.body;
   const gte = Math.floor(Date.now().valueOf() / 1000);
   if (EventStatus === "PRE") {
-    const lte = Math.floor(moment().add(7, "days").valueOf() / 1000);
+    const lte = Math.floor(moment().add(10, "days").valueOf() / 1000);
     const query = {
       sport_id: Number(SportId),
       time_status: Number(0),
