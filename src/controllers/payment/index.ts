@@ -13,6 +13,7 @@ import { Balances, Currencies, Payments } from "../../models";
 import { balanceUpdate, ObjectId } from "../base";
 
 export const ADMINPUB: string = "8Myhky6nWVJFeNkcBH3FE9i29KqV4qsD8reook3AUqYk";
+export const WFEE: number = 0.0125 || process.env.WFEE;
 
 export const deposit = async (req: Request, res: Response) => {
   const { userId, balanceId, currencyId } = req.body;
@@ -130,9 +131,9 @@ export const depositSolana = async (req: Request, res: Response) => {
             if (
               amounti == sendAmount &&
               from.toLowerCase() ==
-                tResult.transaction.message.accountKeys[0].toLowerCase() &&
+              tResult.transaction.message.accountKeys[0].toLowerCase() &&
               receiver.toLowerCase() ==
-                tResult.transaction.message.accountKeys[1].toLowerCase()
+              tResult.transaction.message.accountKeys[1].toLowerCase()
             ) {
               await Payments.findByIdAndUpdate(
                 ObjectId(payment._id),
@@ -154,7 +155,7 @@ export const depositSolana = async (req: Request, res: Response) => {
             const postTokenB = tResult.meta.postTokenBalances;
             const sendAmount = Math.abs(
               preTokenB[0].uiTokenAmount.uiAmount -
-                postTokenB[0].uiTokenAmount.uiAmount
+              postTokenB[0].uiTokenAmount.uiAmount
             );
             const fromAcc = preTokenB[0].owner.toLowerCase();
             const tokenMintAcc = preTokenB[0].mint.toLowerCase();
@@ -479,13 +480,13 @@ export const withdrawalTimer = async () => {
       let signature: any;
       if (currency.symbol == "SOL") {
         signature = await transferSOL(
-          pendingPayment.amount,
+          pendingPayment.amount * (1 - WFEE),
           pendingPayment.address
         );
       } else {
         signature = await transferToken(
           currency.tokenMintAccount,
-          pendingPayment.amount,
+          pendingPayment.amount * (1 - WFEE),
           pendingPayment.address
         );
       }
