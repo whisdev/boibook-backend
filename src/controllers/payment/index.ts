@@ -152,9 +152,10 @@ export const depositSolana = async (req: Request, res: Response) => {
           } else {
             const preTokenB = tResult.meta.preTokenBalances;
             const postTokenB = tResult.meta.postTokenBalances;
-            const sendAmount =
+            const sendAmount = Math.abs(
               preTokenB[0].uiTokenAmount.uiAmount -
-              postTokenB[0].uiTokenAmount.uiAmount;
+                postTokenB[0].uiTokenAmount.uiAmount
+            );
             const fromAcc = preTokenB[0].owner.toLowerCase();
             const tokenMintAcc = preTokenB[0].mint.toLowerCase();
             const receiverAcc = preTokenB[1].owner.toLowerCase();
