@@ -13,6 +13,7 @@ import {
   ObjectId,
 } from "../base";
 import {
+  Currencies,
   SportsBets,
   SportsBetting,
   SportsLeagues,
@@ -246,10 +247,18 @@ const getEndedEvents = async (event_id: number, odds: any, bet: any) => {
 
 export const SportsBet = async (req: Request, res: Response) => {
   const { type, userId, currency, stake } = req.body;
+  const betCurrency: any = await Currencies.findById(ObjectId(currency));
   const betsId = md5(Date.now().toString());
   if (type === "multi") {
     const betsData = [] as any;
     let bets = req.body.data.bets;
+    if (req.body.data.potential > betCurrency?.betLimit) {
+      return res
+        .status(400)
+        .json(
+          `Your bet exceeds the maximum. Maximum ${betCurrency?.symbol} Bet Limit is ${betCurrency?.betLimit} ${betCurrency?.symbol}.`
+        );
+    }
     for (const i in bets) {
       const finished = await getEndedEvents(
         bets[i].eventId,
@@ -348,6 +357,13 @@ export const SportsBet = async (req: Request, res: Response) => {
     const betsData = [] as any;
     for (const i in req.body.data) {
       let data = req.body.data[i];
+      if (data.potential > betCurrency?.betLimit) {
+        return res
+          .status(400)
+          .json(
+            `Your bet exceeds the maximum. Maximum ${betCurrency?.symbol} Bet Limit is ${betCurrency?.betLimit} ${betCurrency?.symbol}.`
+          );
+      }
       const finished = await getEndedEvents(
         data.bets[0].eventId,
         data.bets[0].oddData,
@@ -405,20 +421,17 @@ export const SportsBet = async (req: Request, res: Response) => {
     if (data.length === 0) {
       return res.json({ data: req.body });
     } else {
-      const tstake = data.reduce(
-        (sum: number, { stake }: { stake: number }) => (sum += Number(stake)),
-        0
-      );
-      const isBet = await getActiveBet({ userId, currency, amount: tstake });
+      const tstake = data.reduce((sum: number, { stake }: { stake: number }) => (sum += Number(stake)), 0);
+      // const isBet = await getActiveBet({ userId, currency, amount: tstake });
       const checked = await checkBalance({ userId, currency, amount: tstake });
       if (!checked) {
         return res.status(400).json("Balances not enough!");
-      } else if (!isBet) {
-        return res
-          .status(400)
-          .json(
-            "Max bet limit has been reached. Please wait until your active bets are settled."
-          );
+        // } else if (!isBet) {
+        //   return res
+        //     .status(400)
+        //     .json(
+        //       "Max bet limit has been reached. Please wait until your active bets are settled."
+        //     );
       } else {
         await handleBet({
           req,
@@ -494,10 +507,10 @@ export const getBetHistory = async (req: Request, res: Response) => {
   }
   const total = data.reduce(
     (t, { bettings }) =>
-      (t += bettings.reduce(
-        (s: number, { odds }: { odds: number }) => (s *= Number(odds)),
-        1
-      )),
+    (t += bettings.reduce(
+      (s: number, { odds }: { odds: number }) => (s *= Number(odds)),
+      1
+    )),
     0
   );
   return res.json({
