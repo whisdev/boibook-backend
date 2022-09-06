@@ -1069,6 +1069,7 @@ export const Validator = {
     Create: Joi.object({
       order: Joi.number().required(),
       title: Joi.string().required(),
+      hyperlink: Joi.string().required(),
       uri: Joi.string().required(),
       status: Joi.boolean().required(),
     }),
@@ -1079,6 +1080,7 @@ export const Validator = {
       updatedAt: Joi.date().optional(),
       order: Joi.number().required(),
       title: Joi.string().required(),
+      hyperlink: Joi.string().required(),
       uri: Joi.string().required(),
       status: Joi.boolean().required(),
     }),

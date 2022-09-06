@@ -11,6 +11,9 @@ const advertisementsSchema = new Schema(
     uri: {
       type: String,
     },
+    hyperlink: {
+      type: String,
+    },
     status: {
       type: Boolean,
     },
