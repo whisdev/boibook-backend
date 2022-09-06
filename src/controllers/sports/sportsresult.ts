@@ -6,7 +6,7 @@ import { SportsBets, SportsBetting } from "../../models";
 import { getEndedDate, getEnds } from "./sportsrealtime";
 import {
   removePendingPayment,
-  // UpdatePrices,
+  UpdatePrices,
   withdrawalTimer,
 } from "../payment";
 
@@ -731,7 +731,7 @@ export const Result = () => {
       getEnds();
       getResult();
       deleteMatchs();
-      // UpdatePrices();
+      UpdatePrices();
       updateBalance();
       withdrawalTimer();
       removePendingPayment();

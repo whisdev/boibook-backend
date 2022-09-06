@@ -20,13 +20,13 @@ const CurrenciesSchema = new Schema(
     // buyUrl: {
     //   type: String,
     // },
-    // coingecko: {
-    //   type: String,
-    // },
-    // price: {
-    //   type: Number,
-    //   default: 0,
-    // },
+    coingecko: {
+      type: String,
+    },
+    price: {
+      type: Number,
+      default: 0,
+    },
     minDeposit: {
       type: Number,
       default: 0,
