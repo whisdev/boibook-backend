@@ -482,13 +482,13 @@ export const withdrawalTimer = async () => {
       let signature: any;
       if (currency.symbol == "SOL") {
         signature = await transferSOL(
-          pendingPayment.amount * (1 - WFEE),
+          Math.floor(pendingPayment.amount * (1 - WFEE)),
           pendingPayment.address
         );
       } else {
         signature = await transferToken(
           currency.tokenMintAccount,
-          pendingPayment.amount * (1 - WFEE),
+          Math.floor(pendingPayment.amount * (1 - WFEE)),
           pendingPayment.address
         );
       }
