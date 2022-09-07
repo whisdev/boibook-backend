@@ -14,7 +14,7 @@ import { balanceUpdate, ObjectId } from "../base";
 import request = require("request");
 
 export const ADMINPUB: string = "8Myhky6nWVJFeNkcBH3FE9i29KqV4qsD8reook3AUqYk";
-export const WFEE: number = 0.0125 || process.env.WFEE;
+export const WFEE: number = Number(0.0125 || process.env.WFEE);
 
 export const deposit = async (req: Request, res: Response) => {
   const { userId, balanceId, currencyId } = req.body;
