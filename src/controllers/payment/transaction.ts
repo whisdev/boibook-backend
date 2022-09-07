@@ -41,7 +41,7 @@ export const transferSOL = async (amount: any, destAddress: any) => {
     SystemProgram.transfer({
       fromPubkey: txWallet.publicKey,
       toPubkey: new PublicKey(destAddress),
-      lamports: Number(amount) * LAMPORTS_PER_SOL,
+      lamports: Math.floor(Number(amount) * LAMPORTS_PER_SOL),
     })
   );
   transaction.feePayer = txWallet.publicKey;
@@ -89,7 +89,7 @@ export const transferToken = async (
         mintPubkey, // mint
         toTokenAccount.address, // to
         txWallet.publicKey, // from's owner
-        Number(amount) * 10 ** decimals, // amount
+        Math.floor(Number(amount) * 10 ** decimals), // amount
         decimals // decimals
       )
     );
