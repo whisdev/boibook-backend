@@ -16,6 +16,26 @@ let ecount = 0;
 let ecount1 = 0;
 let scount = 0;
 
+export const Matchs1 = () => {
+  try {
+    console.log("server on: matchs1");
+    getEvents1();
+    const job1 = new CronJob(process.env.LIVE_TIME as string, () => {
+      getEvents1();
+      console.log(
+        moment().format("YYYY-MM-DD hh:mm:ss"),
+        count,
+        ecount,
+        ecount1,
+        scount
+      );
+    });
+    job1.start();
+  } catch (error) {
+    console.log(`matchs1 server error`, error);
+  }
+};
+
 export const Matchs = () => {
   try {
     console.log("server on: matchs");
@@ -36,6 +56,26 @@ export const Matchs = () => {
   }
 };
 
+export const Odds1 = () => {
+  try {
+    console.log("server on: odds1");
+    getOdd1();
+    const job1 = new CronJob(process.env.LIVE_TIME as string, () => {
+      getOdd1();
+      console.log(
+        moment().format("YYYY-MM-DD hh:mm:ss"),
+        count,
+        ecount,
+        ecount1,
+        scount
+      );
+    });
+    job1.start();
+  } catch (error) {
+    console.log(`odds1 server error`, error);
+  }
+};
+
 export const Odds = () => {
   try {
     console.log("server on: odds");
@@ -53,6 +93,26 @@ export const Odds = () => {
     job2.start();
   } catch (error) {
     console.log(`odds server error`, error);
+  }
+};
+
+export const Ends1 = () => {
+  try {
+    console.log("server on: ends1");
+    getEnds1();
+    const job1 = new CronJob(process.env.LIVE_TIME as string, () => {
+      getEnds1();
+      console.log(
+        moment().format("YYYY-MM-DD hh:mm:ss"),
+        count,
+        ecount,
+        ecount1,
+        scount
+      );
+    });
+    job1.start();
+  } catch (error) {
+    console.log(`ends1 server error`, error);
   }
 };
 
@@ -178,6 +238,13 @@ export const getEndedEvents = (event_id: string) => {
   });
 };
 
+const getEvents1 = async () => {
+  const sportslist = await SportsLists.find({ status: true });
+  for (const key in sportslist) {
+    getInplayPage(sportslist[key].SportId);
+  }
+};
+
 const getEvents = async () => {
   const sportslist = await SportsLists.find({ status: true });
   for (const key in sportslist) {
@@ -224,6 +291,36 @@ const getEvents = async () => {
   }
 };
 
+const getOdd1 = async () => {
+  const sportsmatchs = await SportsMatchs.aggregate([
+    {
+      $match: {
+        time_status: 1,
+      },
+    },
+    {
+      $lookup: {
+        from: "sports_lists",
+        localField: "sport_id",
+        foreignField: "SportId",
+        as: "sport",
+      },
+    },
+    {
+      $unwind: "$sport",
+    },
+    {
+      $match: {
+        "sport.status": true,
+        "sport.live": true,
+      },
+    },
+  ]);
+  for (const key in sportsmatchs) {
+    await getOdds(sportsmatchs[key].id, true);
+  }
+};
+
 const getOdd = async () => {
   const lte = Math.floor(moment().add(10, "days").valueOf() / 1000);
   const sportsmatchs = await SportsMatchs.aggregate([
@@ -262,6 +359,29 @@ const getMatchEnds = async () => {
     time_status: { $ne: 1 },
     time: { $lte: lte },
   }).select({ id: 1, _id: 0 });
+  const matchIds = sportsmatchs.map((e) => e.id);
+  const id_count = 10;
+  let pages = Math.ceil(matchIds.length / id_count);
+  let sendEventIds = [] as any;
+  for (let i = 0; i < pages; i++) {
+    let matchId = [] as any;
+    if (i === 0) {
+      matchId = matchIds.slice(0, i + 1 * id_count);
+    } else {
+      matchId = matchIds.slice(i * id_count, (i + 1) * id_count);
+    }
+    sendEventIds.push(matchId.join(","));
+  }
+  for (let i in sendEventIds) {
+    getEndedEvents(sendEventIds[i]);
+  }
+};
+
+const getEnds1 = async () => {
+  const sportsmatchs = await SportsMatchs.find({ time_status: 1 }).select({
+    id: 1,
+    _id: 0,
+  });
   const matchIds = sportsmatchs.map((e) => e.id);
   const id_count = 10;
   let pages = Math.ceil(matchIds.length / id_count);
@@ -415,6 +535,105 @@ const getLeague = (sport_id: number, page: number) => {
             });
           } catch (error) {
             console.log("getLeague => update", error);
+          }
+        }
+      }
+    }
+  });
+};
+
+const getInplayPage = (sport_id: number) => {
+  const options = {
+    method: "GET",
+    url: process.env.LIVE_ENDPOINT as string,
+    qs: { token, sport_id, skip_esports: "Esports" },
+    headers: { "Content-Type": "application/json" },
+    body: { page: 1, skip_markets: 1 },
+    json: true,
+  };
+  request(options, (error: any, response: any, body: any) => {
+    if (error) {
+      ecount++;
+    } else {
+      count++;
+      const data = body;
+      if (!data || !data?.pager) return console.log(data);
+      const pager = data.pager;
+      const page = Math.ceil(pager.total / pager.per_page);
+      for (let i = 0; i < page; i++) {
+        getInplayEvents(sport_id, i + 1);
+      }
+    }
+  });
+};
+
+const getInplayEvents = (sport_id: number, page: number) => {
+  const options = {
+    method: "GET",
+    url: process.env.LIVE_ENDPOINT as string,
+    headers: { "Content-Type": "application/json" },
+    qs: { token, sport_id, skip_esports: "Esports" },
+    body: { page },
+    json: true,
+  };
+  request(options, async (error: any, response: any, body: any) => {
+    if (error) {
+      ecount++;
+    } else {
+      count++;
+      if (body && body.success && body.results.length) {
+        const results = body.results;
+        for (const i in results) {
+          const result = results[i];
+          if (
+            result.away &&
+            result.home &&
+            result.time &&
+            result.time_status !== 2 &&
+            result.time_status !== 3
+          ) {
+            try {
+              const date = moment().add(7, "days").valueOf();
+              const time = new Date(result.time * 1000).valueOf();
+              const sportsLeagues = await SportsLeagues.findOne({
+                id: result.league.id,
+              });
+              if (sportsLeagues?.status && time < date) {
+                const exists = await SportsFixMatchs.findOne({ id: result.id });
+                if (!exists) {
+                  await SportsMatchs.updateOne({ id: result.id }, result, {
+                    upsert: true,
+                  });
+                  scount++;
+                }
+              }
+            } catch (error) {
+              ecount1++;
+            }
+          } else if (
+            result.time &&
+            result.sport_id === "2" &&
+            result.time_status !== 2 &&
+            result.time_status !== 3
+          ) {
+            try {
+              const date = moment().add(7, "days").valueOf();
+              const time = new Date(result.time * 1000).valueOf();
+              const sportsLeagues = await SportsLeagues.findOne({
+                id: result.league.id,
+              });
+              if (sportsLeagues?.status && time < date) {
+                const exists = await SportsFixMatchs.findOne({ id: result.id });
+                if (!exists) {
+                  await SportsMatchs.updateOne({ id: result.id }, result, {
+                    upsert: true,
+                  });
+                  scount++;
+                }
+              }
+            } catch (error) {
+              ecount1++;
+            }
           }
         }
       }

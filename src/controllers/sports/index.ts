@@ -34,7 +34,92 @@ import {
 // updateDTManually();
 
 export const getSportsLists = async (req: Request, res: Response) => {
-  const data = await SportsLists.find({ status: true });
+  const { EventStatus } = req.body;
+  let query1 = {} as any;
+  let query2 = {} as any;
+  const gte = Math.floor(Date.now().valueOf() / 1000);
+  if (EventStatus) {
+    query1.time_status = 0;
+  }
+  if (EventStatus === "LIVE") {
+    query1.time_status = 1;
+    query2.live = true;
+  }
+  if (EventStatus === "HOUR") {
+    const lte = Math.floor(moment().add(1, "hours").valueOf() / 1000);
+    query1.time = { $gte: gte, $lte: lte };
+    query2.upcoming = true;
+  }
+  if (EventStatus === "TODAY") {
+    const lte = Math.floor(moment().add(1, "days").valueOf() / 1000);
+    query1.time = { $gte: gte, $lte: lte };
+    query2.upcoming = true;
+  }
+  if (EventStatus === "PRE") {
+    const lte = Math.floor(moment().add(7, "days").valueOf() / 1000);
+    query1.time = { $gte: gte, $lte: lte };
+    query2.upcoming = true;
+  }
+  query1.odds = { $ne: {} };
+  query1.astatus = true;
+  query1.odds = { $ne: {} };
+  const data = await SportsMatchs.aggregate([
+    {
+      $match: query1,
+    },
+    {
+      $lookup: {
+        from: "sports_lists",
+        localField: "sport_id",
+        foreignField: "SportId",
+        as: "sport",
+      },
+    },
+    {
+      $unwind: "$sport",
+    },
+    {
+      $group: {
+        _id: {
+          icon: "$sport.icon",
+          SportId: "$sport.SportId",
+          SportName: "$sport.SportName",
+          color: "$sport.color",
+          status: "$sport.status",
+          live: "$sport.live",
+          upcoming: "$sport.upcoming",
+          id: "$sport._id",
+          order: "$sport.order",
+          img: "$sport.img",
+        },
+        count: { $sum: 1 },
+      },
+    },
+    {
+      $sort: {
+        "_id.order": 1,
+      },
+    },
+    {
+      $match: { "_id.status": true },
+    },
+    {
+      $project: {
+        _id: "$_id.id",
+        icon: "$_id.icon",
+        color: "$_id.color",
+        SportId: "$_id.SportId",
+        SportName: "$_id.SportName",
+        live: "$_id.live",
+        upcoming: "$_id.upcoming",
+        img: "$_id.img",
+        count: "$count",
+      },
+    },
+    {
+      $match: query2,
+    },
+  ]);
   return res.json(data);
 };
 
@@ -54,8 +139,42 @@ export const getSportsOdds = async (req: Request, res: Response) => {
 export const getSportsMatchs = async (req: Request, res: Response) => {
   const { EventStatus, SportId } = req.body;
   const gte = Math.floor(Date.now().valueOf() / 1000);
-  if (EventStatus === "PRE") {
-    const lte = Math.floor(moment().add(10, "days").valueOf() / 1000);
+  if (EventStatus === "LIVE") {
+    const query = {
+      sport_id: Number(SportId),
+      time_status: Number(1),
+    };
+    const squery = {
+      "sport.status": true,
+      "sport.live": true,
+    };
+    return await getSportMatchs(req, res, query, squery);
+  } else if (EventStatus === "HOUR") {
+    const lte = Math.floor(moment().add(1, "hours").valueOf() / 1000);
+    const query = {
+      sport_id: Number(SportId),
+      time_status: Number(0),
+      time: { $gte: gte, $lte: lte },
+    };
+    const squery = {
+      "sport.status": true,
+      "sport.upcoming": true,
+    };
+    return await getSportMatchs(req, res, query, squery);
+  } else if (EventStatus === "TODAY") {
+    const lte = Math.floor(moment().add(1, "days").valueOf() / 1000);
+    const query = {
+      sport_id: Number(SportId),
+      time_status: Number(0),
+      time: { $gte: gte, $lte: lte },
+    };
+    const squery = {
+      "sport.status": true,
+      "sport.upcoming": true,
+    };
+    return await getSportMatchs(req, res, query, squery);
+  } else if (EventStatus === "PRE") {
+    const lte = Math.floor(moment().add(7, "days").valueOf() / 1000);
     const query = {
       sport_id: Number(SportId),
       time_status: Number(0),
