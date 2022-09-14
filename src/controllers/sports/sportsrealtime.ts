@@ -239,6 +239,7 @@ export const getEndedEvents = (event_id: string) => {
 };
 
 const getEvents1 = async () => {
+  console.log('live live live');
   const sportslist = await SportsLists.find({ status: true });
   for (const key in sportslist) {
     getInplayPage(sportslist[key].SportId);

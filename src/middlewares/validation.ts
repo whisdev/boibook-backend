@@ -43,14 +43,14 @@ export const Validator = {
         rReferral: Joi.string().allow("", null).optional(),
       }),
       CheckAddress: Joi.object({
-        publicAddress: Joi.string().min(44).max(44).required(),
+        publicAddress: Joi.string().min(42).max(44).required(),
       }),
       SigninAddress: Joi.object({
-        publicAddress: Joi.string().min(44).max(44).required(),
+        publicAddress: Joi.string().min(42).max(44).required(),
         signature: Joi.string().min(1).required(),
       }),
       SignupAddress: Joi.object({
-        publicAddress: Joi.string().min(44).max(44).required(),
+        publicAddress: Joi.string().min(42).max(44).required(),
         // iReferral: Joi.string().allow("", null).optional(),
         rReferral: Joi.string().allow("", null).optional(),
       }),
@@ -75,8 +75,8 @@ export const Validator = {
         email: Joi.string().min(1).optional(),
         username: Joi.string().min(1).optional(),
         avatar: Joi.string().min(1).allow("", null).optional(),
-        cryptoAccount: Joi.string().min(44).max(44).optional(),
-        publicAddress: Joi.string().min(44).max(44).optional(),
+        cryptoAccount: Joi.string().min(42).max(44).optional(),
+        publicAddress: Joi.string().min(42).max(44).optional(),
         oddsformat: Joi.string().optional(),
         iReferral: Joi.string().allow("", null).optional(),
         rReferral: Joi.string().allow("", null).optional(),

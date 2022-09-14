@@ -543,7 +543,7 @@ export const getProfits = async (req: Request, res: Response) => {
       },
     },
   ]);
-  const mbt = currencies.find((e) => e.currency === "MBT");
+  const sol = currencies.find((e) => e.currency === "SOL");
   let profit = 0;
   for (const i in currencies) {
     const sportsbet = sportsBets.filter(
@@ -564,8 +564,8 @@ export const getProfits = async (req: Request, res: Response) => {
     profit += (lost - (win - winstake)) * currencies[i].price;
   }
   return res.json({
-    profit: toNumber((profit / mbt?.price) * 0.1, 2),
-    icon: mbt.icon,
+    profit: toNumber((profit / sol?.price) * 0.1, 2),
+    icon: sol.icon,
   });
 };
 

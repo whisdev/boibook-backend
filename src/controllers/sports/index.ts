@@ -292,7 +292,7 @@ const saveBet = async (data: any) => {
   await SportsBetting.insertMany(bets);
 };
 
-const getOdds = (event_id: number, odds: object) => {
+const getOdds = (event_id: number, odds: any) => {
   return new Promise(async (resolve, reject) => {
     const options = {
       method: "GET",
@@ -306,13 +306,12 @@ const getOdds = (event_id: number, odds: object) => {
         resolve(true);
       } else {
         if (body && body.success && body.results && body.results.odds) {
-          const newOdds = await filterOdds(body.results.odds);
-          resolve(true);
-          // if (odds?.id !== newOdds[odds.marketId]?.id) {
-          //     resolve(true)
-          // } else {
-          //     resolve(false)
-          // }
+          const newOdds: any = await filterOdds(body.results.odds);
+          if (odds?.id !== newOdds[odds.marketId]?.id) {
+            resolve(true)
+          } else {
+            resolve(false)
+          }
         }
       }
     });
