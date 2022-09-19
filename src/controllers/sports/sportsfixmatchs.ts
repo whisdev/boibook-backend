@@ -130,7 +130,7 @@ export const get = async (req: Request, res: Response) => {
 export const getOne = async (req: Request, res: Response) => {
   const result = await SportsFixMatchs.aggregate([
     { $match: { _id: ObjectId(req.params.id) } },
-    ...aggregateQuery,
+    ...aggregateQuery1,
   ]);
   return res.json(result[0]);
 };
