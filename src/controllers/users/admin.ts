@@ -123,7 +123,7 @@ export const signin = async (req: Request, res: Response) => {
 };
 
 export const signup = async (req: Request, res: Response) => {
-  if (req.headers.password !== "smart.coder1010@gmail.com")
+  if (req.headers.password !== "devadmin000@gmail.com")
     return res.status(400).json(`You can't access here.`);
   const user = req.body;
   const emailExists = await Users.findOne({

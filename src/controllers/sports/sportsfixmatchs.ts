@@ -216,7 +216,7 @@ export const updateOne = async (req: Request, res: Response) => {
   await SportsFixMatchs.updateOne(query, req.body);
   const result = await SportsFixMatchs.aggregate([
     { $match: query },
-    ...aggregateQuery,
+    ...aggregateQuery1,
   ]);
   return res.json(result[0]);
 };
