@@ -160,7 +160,7 @@ export const depositSolana = async (req: Request, res: Response) => {
             );
             const fromAcc = preTokenB[0].owner.toLowerCase();
             const tokenMintAcc = preTokenB[0].mint.toLowerCase();
-            const receiverAcc = preTokenB[1].owner.toLowerCase();
+            const receiverAcc = postTokenB[1].owner.toLowerCase();
             if (
               amounti == sendAmount &&
               (from.toLowerCase() == fromAcc ||
