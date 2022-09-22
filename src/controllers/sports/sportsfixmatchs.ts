@@ -260,9 +260,9 @@ export const betSettled = async (req: Request, res: Response) => {
     for (const i in sportsBets) {
       const bet = sportsBets[i];
       if (bet.matchs.time_status === 3) {
-        const reuslt = await bettingSettled({ bet, data: bet.matchs });
-        if (reuslt.state) {
-          await SportsBetting.updateOne({ _id: ObjectId(bet._id) }, reuslt);
+        const result = await bettingSettled({ bet, data: bet.matchs });
+        if (result.state) {
+          await SportsBetting.updateOne({ _id: ObjectId(bet._id) }, result);
         }
       } else if (bet.matchs.time_status === 101) {
         await SportsBetting.updateOne(

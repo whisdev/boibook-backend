@@ -140,7 +140,7 @@ export const signup = async (req: Request, res: Response) => {
       .status(400)
       .json(`An account named '${user.username}' already exists.`);
   }
-  const currency = await Currencies.findOne({ symbol: "MBT" });
+  const currency = await Currencies.findOne({ symbol: "SOL" });
   if (!currency) {
     return res.status(400).json("error");
   }

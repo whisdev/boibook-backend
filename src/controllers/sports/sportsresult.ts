@@ -395,12 +395,21 @@ const getScores = ({
     a_score = Number(f_score.away);
     t_score = home_score + away_score;
     return { h_score, a_score, t_score, state: true };
+  } else if (SportId === 16) {
+    if (scores['9'].home === '' || scores['9'].away === '') {
+      return { h_score, a_score, t_score, state: false };
+    } else {
+      const s = ss.split("-");
+      h_score = Number(s[0]);
+      a_score = Number(s[1]);
+      t_score = h_score + a_score;
+      return { h_score, a_score, t_score, state: true };
+    }
   } else if (
     SportId === 8 ||
     SportId === 9 ||
     SportId === 14 ||
     SportId === 15 ||
-    SportId === 16 ||
     SportId === 36 ||
     SportId === 66 ||
     SportId === 83 ||
@@ -614,7 +623,7 @@ const getResult = async () => {
     } else if (
       data?.ss !== sportsBets[i].matchs?.ss ||
       JSON.stringify(data?.scores) !==
-        JSON.stringify(sportsBets[i].matchs?.scores)
+      JSON.stringify(sportsBets[i].matchs?.scores)
     ) {
       console.log(`not match scores => `, data, sportsBets[i].matchs);
     } else if (data.time_status === "3") {
@@ -623,10 +632,12 @@ const getResult = async () => {
       if (bet.matchs.time_status != "3" || data.time_status != "3") {
         console.log(data);
       } else {
-        const reuslt = await bettingSettled({ bet, data });
-        if (reuslt.state) {
-          await SportsBetting.updateOne({ _id: ObjectId(bet._id) }, reuslt);
+        const result = await bettingSettled({ bet, data });
+        if (result.state) {
+          await SportsBetting.updateOne({ _id: ObjectId(bet._id) }, result);
           count++;
+        } else {
+          console.log(result)
         }
       }
     } else {
