@@ -347,7 +347,6 @@ const getScores = ({
       return { h_score, a_score, t_score, state: true };
     }
   } else if (
-    SportId === 12 ||
     SportId === 17 ||
     SportId === 18 ||
     SportId === 19 ||
@@ -358,6 +357,18 @@ const getScores = ({
     a_score = Number(f_score.away);
     t_score = h_score + a_score;
     return { h_score, a_score, t_score, state: true };
+  } else if (
+    SportId === 12
+  ) {
+    if (!scores[5]?.home || !scores[5]?.away) {
+      return { h_score, a_score, t_score, state: false };
+    } else {
+      const f_score = getFScore(scores);
+      h_score = Number(f_score.home);
+      a_score = Number(f_score.away);
+      t_score = h_score + a_score;
+      return { h_score, a_score, t_score, state: true };
+    }
   } else if (SportId === 13) {
     const f_score = getScore(scores);
     if (f_score.home === f_score.away) {

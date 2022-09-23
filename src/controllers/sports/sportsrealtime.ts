@@ -229,7 +229,7 @@ export const getEndedEvents = (event_id: string) => {
     } else {
       count++;
       if (body && body.success && body.results.length) {
-        const results = body.results;
+        const results = body.results.filter((event: any) => Number(event.time_status) === 3);
         for (const i in results) {
           await updateEndedEvents(results[i]);
         }
