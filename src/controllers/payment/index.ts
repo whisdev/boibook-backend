@@ -68,8 +68,6 @@ export const depositSolana = async (req: Request, res: Response) => {
     balanceId,
     currencyId,
     signature,
-    amount,
-    amounti,
     address,
     receiver,
     from,
@@ -92,7 +90,6 @@ export const depositSolana = async (req: Request, res: Response) => {
       balanceId,
       currencyId: currencyId,
       currency: currency.payment,
-      amount,
       address,
       status: 1,
       method: 0,
@@ -124,17 +121,19 @@ export const depositSolana = async (req: Request, res: Response) => {
             tResult.transaction.message.accountKeys[2] ==
             "11111111111111111111111111111111"
           ) {
-            var sendAmount =
+            var amount =
               (tResult.meta.preBalances[0] -
                 tResult.meta.postBalances[0] -
                 tResult.meta.fee) /
               SolanaWeb3.LAMPORTS_PER_SOL;
-            if (
-              amounti == sendAmount &&
-              from.toLowerCase() ==
-              tResult.transaction.message.accountKeys[0].toLowerCase() &&
-              receiver.toLowerCase() ==
-              tResult.transaction.message.accountKeys[1].toLowerCase()
+
+            const fromAcc = tResult.transaction.message.accountKeys[0].toLowerCase();
+            const receiverAcc = tResult.transaction.message.accountKeys[1].toLowerCase();
+
+            if ((from.toLowerCase() == fromAcc ||
+              from.toLowerCase() == receiverAcc) &&
+              (receiver.toLowerCase() == fromAcc ||
+                receiver.toLowerCase() == receiverAcc)
             ) {
               await Payments.findByIdAndUpdate(
                 ObjectId(payment._id),
@@ -154,16 +153,14 @@ export const depositSolana = async (req: Request, res: Response) => {
           } else {
             const preTokenB = tResult.meta.preTokenBalances;
             const postTokenB = tResult.meta.postTokenBalances;
-            const sendAmount = Math.abs(
+            const amount = Math.abs(
               preTokenB[0].uiTokenAmount.uiAmount -
               postTokenB[0].uiTokenAmount.uiAmount
             );
             const fromAcc = preTokenB[0].owner.toLowerCase();
             const tokenMintAcc = preTokenB[0].mint.toLowerCase();
             const receiverAcc = postTokenB[1].owner.toLowerCase();
-            if (
-              amounti == sendAmount &&
-              (from.toLowerCase() == fromAcc ||
+            if ((from.toLowerCase() == fromAcc ||
                 from.toLowerCase() == receiverAcc) &&
               address.toLowerCase() == tokenMintAcc &&
               (receiver.toLowerCase() == fromAcc ||
