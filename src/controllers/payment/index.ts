@@ -102,30 +102,38 @@ export const depositSolana = async (req: Request, res: Response) => {
   res.json(payment);
   let timeout = 0;
   let timer = null as any;
+  console.log('1')
   async function timerfunc() {
+    console.log('2')
     const paymentResult: any = await Payments.findById(ObjectId(payment._id));
     if (paymentResult.status === 100 || paymentResult.status === -1) {
       return clearTimeout(timer);
     } else {
+      console.log('3')
       const res = await getTxnResult(signature);
       if (!res.status) {
+        console.log('4-1')
         await Payments.updateOne(
           { _id: payment._id },
           { status: -1, status_text: "canceled" }
         );
         return clearTimeout(timer);
       } else {
+        console.log('4-2')
         var tResult = res.data.result;
+        console.log(tResult)
         if (tResult) {
           if (
             tResult.transaction.message.accountKeys[2] ==
             "11111111111111111111111111111111"
           ) {
-            var amount =
+            const amount =
               (tResult.meta.preBalances[0] -
                 tResult.meta.postBalances[0] -
                 tResult.meta.fee) /
               SolanaWeb3.LAMPORTS_PER_SOL;
+
+            console.log(amount);
 
             const fromAcc = tResult.transaction.message.accountKeys[0].toLowerCase();
             const receiverAcc = tResult.transaction.message.accountKeys[1].toLowerCase();
@@ -161,7 +169,7 @@ export const depositSolana = async (req: Request, res: Response) => {
             const tokenMintAcc = preTokenB[0].mint.toLowerCase();
             const receiverAcc = postTokenB[1].owner.toLowerCase();
             if ((from.toLowerCase() == fromAcc ||
-                from.toLowerCase() == receiverAcc) &&
+              from.toLowerCase() == receiverAcc) &&
               address.toLowerCase() == tokenMintAcc &&
               (receiver.toLowerCase() == fromAcc ||
                 receiver.toLowerCase() == receiverAcc)
@@ -171,6 +179,7 @@ export const depositSolana = async (req: Request, res: Response) => {
                 { status: 100, status_text: "confirmed" },
                 { new: true }
               );
+              console.log(amount);
               await balanceUpdate({
                 req,
                 balanceId,
