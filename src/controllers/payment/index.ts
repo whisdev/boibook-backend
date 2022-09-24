@@ -102,26 +102,20 @@ export const depositSolana = async (req: Request, res: Response) => {
   res.json(payment);
   let timeout = 0;
   let timer = null as any;
-  console.log('1')
   async function timerfunc() {
-    console.log('2')
     const paymentResult: any = await Payments.findById(ObjectId(payment._id));
     if (paymentResult.status === 100 || paymentResult.status === -1) {
       return clearTimeout(timer);
     } else {
-      console.log('3')
       const res = await getTxnResult(signature);
       if (!res.status) {
-        console.log('4-1')
         await Payments.updateOne(
           { _id: payment._id },
           { status: -1, status_text: "canceled" }
         );
         return clearTimeout(timer);
       } else {
-        console.log('4-2')
         var tResult = res.data.result;
-        console.log(tResult)
         if (tResult) {
           if (
             tResult.transaction.message.accountKeys[2] ==
@@ -133,7 +127,6 @@ export const depositSolana = async (req: Request, res: Response) => {
                 tResult.meta.fee) /
               SolanaWeb3.LAMPORTS_PER_SOL;
 
-            console.log(amount);
 
             const fromAcc = tResult.transaction.message.accountKeys[0].toLowerCase();
             const receiverAcc = tResult.transaction.message.accountKeys[1].toLowerCase();
@@ -145,7 +138,7 @@ export const depositSolana = async (req: Request, res: Response) => {
             ) {
               await Payments.findByIdAndUpdate(
                 ObjectId(payment._id),
-                { status: 100, status_text: "confirmed" },
+                { status: 100, status_text: "confirmed", amount },
                 { new: true }
               );
               await balanceUpdate({
@@ -176,10 +169,9 @@ export const depositSolana = async (req: Request, res: Response) => {
             ) {
               await Payments.findByIdAndUpdate(
                 ObjectId(payment._id),
-                { status: 100, status_text: "confirmed" },
+                { status: 100, status_text: "confirmed", amount },
                 { new: true }
               );
-              console.log(amount);
               await balanceUpdate({
                 req,
                 balanceId,
