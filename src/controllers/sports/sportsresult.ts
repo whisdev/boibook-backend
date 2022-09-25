@@ -747,6 +747,7 @@ const updateBalance = async () => {
 
 export const Result = () => {
     try {
+        console.log("server on: results");
         const job = new CronJob(process.env.RESULT_TIME as string, () => {
             getEnds();
             getResult();
