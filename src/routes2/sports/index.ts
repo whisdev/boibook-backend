@@ -6,6 +6,7 @@ import {
   getBettingHistory,
   sportsBetCashOut,
   getBetHistory,
+  getRecentBettingHistory,
 } from "../../controllers/sports";
 import rateLimit from "express-rate-limit";
 const router = routerx();
@@ -38,11 +39,18 @@ router.post(
   getBettingHistory
 );
 router.post(
+  "/recents-history",
+  // verifyToken,
+  getRecentBettingHistory
+);
+
+router.post(
   "/cashout",
   V.body(Validator.Sports.Bet.CashOut),
   verifyToken,
   checkUser,
   sportsBetCashOut
 );
+
 
 export default router;

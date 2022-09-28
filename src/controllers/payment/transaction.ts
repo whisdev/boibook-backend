@@ -14,12 +14,13 @@ import {
 } from "@solana/spl-token";
 import * as bs58 from "bs58";
 import axios from "axios";
+import { decrypt } from "../base";
 
 const param = process.env.MODE === "dev" ? "testnet" : "mainnet-beta";
 const connection = new Connection(clusterApiUrl(param));
 const URL = clusterApiUrl(param);
 
-const PRIVKEY: any = process.env.PRIVKEY;
+const PRIVKEY: any = decrypt(process.env.PRIVKEY as string);
 const txWallet = Keypair.fromSecretKey(bs58.decode(PRIVKEY));
 
 export const getTxnResult = async (signature: string) => {
