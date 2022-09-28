@@ -253,15 +253,15 @@ export const signinAddress = async (req: Request, res: Response) => {
   }
   const msg = `boibook: ${user.nonce}`;
 
-  // const verified = nacl.sign.detached.verify(
-  //   new TextEncoder().encode(msg),
-  //   bs58.decode(signature),
-  //   bs58.decode(publicAddress)
-  // );
+  const verified = nacl.sign.detached.verify(
+    new TextEncoder().encode(msg),
+    bs58.decode(signature),
+    bs58.decode(publicAddress)
+  );
 
-  // if (verified != true) {
-  //   return res.status(400).json("Signature verification failed.");
-  // }
+  if (verified != true) {
+    return res.status(400).json("Signature verification failed.");
+  }
   user.nonce = Date.now();
   const result = await user.save();
   if (!result) {

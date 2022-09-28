@@ -69,7 +69,6 @@ export const depositSolana = async (req: Request, res: Response) => {
     currencyId,
     signature,
     address,
-    receiver,
     from,
   } = req.body;
   const currency: any = await Currencies.findById(currencyId);
@@ -133,8 +132,8 @@ export const depositSolana = async (req: Request, res: Response) => {
 
             if ((from.toLowerCase() == fromAcc ||
               from.toLowerCase() == receiverAcc) &&
-              (receiver.toLowerCase() == fromAcc ||
-                receiver.toLowerCase() == receiverAcc)
+              (ADMINPUB.toLowerCase() == fromAcc ||
+                ADMINPUB.toLowerCase() == receiverAcc)
             ) {
               await Payments.findByIdAndUpdate(
                 ObjectId(payment._id),
@@ -164,8 +163,8 @@ export const depositSolana = async (req: Request, res: Response) => {
             if ((from.toLowerCase() == fromAcc ||
               from.toLowerCase() == receiverAcc) &&
               address.toLowerCase() == tokenMintAcc &&
-              (receiver.toLowerCase() == fromAcc ||
-                receiver.toLowerCase() == receiverAcc)
+              (ADMINPUB.toLowerCase() == fromAcc ||
+                ADMINPUB.toLowerCase() == receiverAcc)
             ) {
               await Payments.findByIdAndUpdate(
                 ObjectId(payment._id),

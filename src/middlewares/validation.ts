@@ -1019,7 +1019,6 @@ export const Validator = {
         currencyId: Joi.string().min(24).max(24).required(),
         signature: Joi.string().min(50).max(100).required(),
         address: Joi.string().required(),
-        receiver: Joi.string().required(),
         from: Joi.string().required(),
       }),
     },
