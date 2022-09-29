@@ -738,7 +738,7 @@ export const getRecentBettingHistory = async (req: Request, res: Response) => {
     {
       $sort: { createdAt: -1 },
     },
-  ]).limit(30);
+  ]).limit(25);
   return res.json(sportsBets);
 };
 
