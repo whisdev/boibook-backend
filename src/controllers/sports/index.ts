@@ -468,7 +468,7 @@ export const SportsBet = async (req: Request, res: Response) => {
         req.body.data.betsId = betsId;
         await saveBet(req.body.data);
         req.body.data.bets = data;
-        req.app.get("io").emit("balance", { bet: true });
+        req.app.get("io").emit("bet");
         return res.json({ data: req.body, betsId });
       }
     }
@@ -538,7 +538,7 @@ export const SportsBet = async (req: Request, res: Response) => {
       (e: any) => e.bets[0].finished !== true && e.bets[0].updated !== true
     );
     if (data.length === 0) {
-      req.app.get("io").emit("balance", { bet: true });
+      req.app.get("io").emit("bet");
       return res.json({ data: req.body });
     } else {
       const tstake = data.reduce((sum: number, { stake }: { stake: number }) => (sum += Number(stake)), 0);
@@ -564,7 +564,7 @@ export const SportsBet = async (req: Request, res: Response) => {
         for (const i in data) {
           await saveBet(data[i]);
         }
-        req.app.get("io").emit("bet", { bet: true });
+        req.app.get("io").emit("bet");
         return res.json({ data: req.body, betsId });
       }
     }

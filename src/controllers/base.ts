@@ -200,7 +200,8 @@ export const handleBet = async ({
       info,
     });
     if (result1.status && !result1.disabled && req) {
-      req.app.get("io").emit("balance", { balance: result1.balance });
+      const session = await Sessions.findOne({ userId });
+      req.app.get("io").to(session?.socketId).emit("balance", { balance: result1.balance });
     }
     return result1;
   } else {
@@ -221,7 +222,8 @@ export const handleBet = async ({
       info,
     });
     if (result.status && !result.disabled && req) {
-      req.app.get("io").emit("balance", { balance: result.balance });
+      const session = await Sessions.findOne({ userId });
+      req.app.get("io").to(session?.socketId).emit("balance", { balance: result.balance });
     }
     return result;
   }
