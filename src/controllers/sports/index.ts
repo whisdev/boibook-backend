@@ -696,6 +696,17 @@ export const getBettingHistory = async (req: Request, res: Response) => {
   return res.json(sportsBets);
 };
 
+export const getLiveMatches = async (req: Request, res: Response) => {
+  const query = {
+    time_status: Number(1),
+  };
+  const squery = {
+    "sport.status": true,
+    "sport.live": true,
+  };
+  return await getSportMatchs(req, res, query, squery);
+};
+
 export const getRecentBettingHistory = async (req: Request, res: Response) => {
   let qurey = {} as any;
   qurey.status = "BET";

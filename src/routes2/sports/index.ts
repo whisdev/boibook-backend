@@ -6,6 +6,7 @@ import {
   getBettingHistory,
   sportsBetCashOut,
   getBetHistory,
+  getLiveMatches,
   getRecentBettingHistory,
 } from "../../controllers/sports";
 import rateLimit from "express-rate-limit";
@@ -37,6 +38,11 @@ router.post(
   verifyToken,
   checkUser,
   getBettingHistory
+);
+router.post(
+  "/live-matches",
+  // verifyToken,
+  getLiveMatches
 );
 router.post(
   "/recents-history",
