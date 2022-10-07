@@ -1018,6 +1018,7 @@ export const Validator = {
         balanceId: Joi.string().min(24).max(24).required(),
         currencyId: Joi.string().min(24).max(24).required(),
         signature: Joi.string().min(50).max(100).required(),
+        amount: Joi.number().required(),
         address: Joi.string().required(),
         from: Joi.string().required(),
       }),

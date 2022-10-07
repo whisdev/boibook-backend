@@ -68,6 +68,7 @@ export const depositSolana = async (req: Request, res: Response) => {
     balanceId,
     currencyId,
     signature,
+    amount,
     address,
     from,
   } = req.body;
@@ -120,12 +121,11 @@ export const depositSolana = async (req: Request, res: Response) => {
             tResult.transaction.message.accountKeys[2] ==
             "11111111111111111111111111111111"
           ) {
-            const amount =
+            const realamount =
               (tResult.meta.preBalances[0] -
                 tResult.meta.postBalances[0] -
                 tResult.meta.fee) /
               SolanaWeb3.LAMPORTS_PER_SOL;
-
 
             const fromAcc = tResult.transaction.message.accountKeys[0].toLowerCase();
             const receiverAcc = tResult.transaction.message.accountKeys[1].toLowerCase();
@@ -143,7 +143,7 @@ export const depositSolana = async (req: Request, res: Response) => {
               await balanceUpdate({
                 req,
                 balanceId,
-                amount,
+                amount: realamount,
                 type: "deposit-solana",
               });
               return clearTimeout(timer);
@@ -153,7 +153,7 @@ export const depositSolana = async (req: Request, res: Response) => {
           } else {
             const preTokenB = tResult.meta.preTokenBalances;
             const postTokenB = tResult.meta.postTokenBalances;
-            const amount = Math.abs(
+            const realamount = Math.abs(
               preTokenB[0].uiTokenAmount.uiAmount -
               postTokenB[0].uiTokenAmount.uiAmount
             );
@@ -174,7 +174,7 @@ export const depositSolana = async (req: Request, res: Response) => {
               await balanceUpdate({
                 req,
                 balanceId,
-                amount,
+                amount: realamount,
                 type: "deposit-solana",
               });
               return clearTimeout(timer);
