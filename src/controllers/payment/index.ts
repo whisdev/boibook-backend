@@ -90,6 +90,7 @@ export const depositSolana = async (req: Request, res: Response) => {
       balanceId,
       currencyId: currencyId,
       currency: currency.payment,
+      amount,
       address,
       status: 1,
       method: 0,
@@ -137,7 +138,7 @@ export const depositSolana = async (req: Request, res: Response) => {
             ) {
               await Payments.findByIdAndUpdate(
                 ObjectId(payment._id),
-                { status: 100, status_text: "confirmed", amount },
+                { status: 100, status_text: "confirmed", amount: realamount },
                 { new: true }
               );
               await balanceUpdate({
@@ -168,7 +169,7 @@ export const depositSolana = async (req: Request, res: Response) => {
             ) {
               await Payments.findByIdAndUpdate(
                 ObjectId(payment._id),
-                { status: 100, status_text: "confirmed", amount },
+                { status: 100, status_text: "confirmed", amount: realamount },
                 { new: true }
               );
               await balanceUpdate({

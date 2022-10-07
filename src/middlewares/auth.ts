@@ -151,8 +151,7 @@ export const checkUrl = (req: any, res: Response, next: NextFunction) => {
           "YYYY-MM-DD"
         )}.log`;
         log(
-          `start\n${geo?.country} ${ipaddress}  ${req.method}  ${
-            req.url
+          `start\n${geo?.country} ${ipaddress}  ${req.method}  ${req.url
           }\nheaders ${JSON.stringify(req.headers)}\nparams ${JSON.stringify(
             req.params
           )}\nbody ${JSON.stringify(req.body)}\nend\r\n\n`,
