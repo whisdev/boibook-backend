@@ -31,7 +31,7 @@ const apilist = [
 
 const adminPathList = ["/signin", "/signup", "/signout", "/changePassword"];
 
-const iplist = ["74.208.139.129"];
+const blockiplist = JSON.parse(process.env.BLCOK_LIST as string | '[]');
 
 const useragentlist = [
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_1) AppleWebKit/601.2.4 (KHTML, like Gecko) Version/9.0.1 Safari/601.2.4 facebookexternalhit/1.1 Facebot Twitterbot/1.0",
@@ -120,7 +120,7 @@ export const checkUrl = (req: any, res: Response, next: NextFunction) => {
     const ipaddress = ip.replace("::ffff:", "");
     const geo = geoip.lookup(ipaddress);
     if (
-      iplist.indexOf(ipaddress) !== -1 ||
+      blockiplist.indexOf(ipaddress) !== -1 ||
       useragentlist.indexOf(req.headers["user-agent"]) == undefined ||
       useragentlist.indexOf(req.headers["user-agent"]) !== -1 ||
       (req.headers["user-agent"] &&
@@ -185,7 +185,7 @@ export const corsOptionsDelegate = (req: any, callback: Function) => {
   try {
     const ip = requestIp.getClientIp(req) as string;
     const ipaddress = ip.replace("::ffff:", "");
-    if (iplist.indexOf(ipaddress) !== -1) {
+    if (blockiplist.indexOf(ipaddress) !== -1) {
       corsOptions = true;
     } else if (req.method === "GET") {
       corsOptions = false;
