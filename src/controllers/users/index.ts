@@ -183,9 +183,10 @@ export const checkAddress = async (req: Request, res: Response) => {
     },
   });
   if (!user) {
-    return res
-      .status(400)
-      .json(`We can't find with this account. will signup automatically.`);
+    return res.json({
+      status: false,
+      message: `We can't find with this account.`,
+    });
   } else if (!user.status) {
     return res.status(400).json("Account has been blocked.");
   }
