@@ -200,7 +200,7 @@ export const Validator = {
         userId: Joi.string().min(24).max(24).optional(),
         SportId: Joi.number().optional(),
         currency: Joi.string().min(24).max(24).optional(),
-        type: Joi.string().valid("multi", "single").optional(),
+        type: Joi.string().valid("multi", "teaser", "single").optional(),
         status: Joi.string()
           .valid(
             "BET",
@@ -228,7 +228,7 @@ export const Validator = {
         profit: Joi.string().min(0).required(),
         potential: Joi.string().min(0).required(),
         betType: Joi.number().required(),
-        type: Joi.string().valid("multi", "single").required(),
+        type: Joi.string().valid("multi", "teaser", "single").required(),
         status: Joi.string()
           .valid(
             "BET",
@@ -255,7 +255,7 @@ export const Validator = {
         profit: Joi.string().min(0).optional(),
         potential: Joi.string().min(0).optional(),
         betType: Joi.number().optional(),
-        type: Joi.string().valid("multi", "single").optional(),
+        type: Joi.string().valid("multi", "teaser", "single").optional(),
         status: Joi.string()
           .valid(
             "BET",
@@ -569,7 +569,7 @@ export const Validator = {
         betsId: Joi.string().min(32).max(32).required(),
       }),
       Bet: Joi.object({
-        type: Joi.string().valid("multi", "single").required(),
+        type: Joi.string().valid("multi", "teaser", "single").required(),
         userId: Joi.string().min(24).max(24).required(),
         currency: Joi.string().min(24).max(24).required(),
         stake: Joi.number().required(),

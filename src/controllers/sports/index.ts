@@ -308,9 +308,9 @@ const getOdds = (event_id: number, odds: any) => {
         if (body && body.success && body.results && body.results.odds) {
           const newOdds: any = await filterOdds(body.results.odds);
           if (odds?.id !== newOdds[odds.marketId]?.id) {
-            resolve(true)
+            resolve(true);
           } else {
-            resolve(false)
+            resolve(false);
           }
         }
       }
@@ -367,7 +367,7 @@ export const SportsBet = async (req: Request, res: Response) => {
   const { type, userId, currency, stake } = req.body;
   const betCurrency: any = await Currencies.findById(ObjectId(currency));
   const betsId = md5(Date.now().toString());
-  if (type === "multi") {
+  if (type === "multi" || type === "teaser") {
     const betsData = [] as any;
     let bets = req.body.data.bets;
     if (req.body.data.potential > betCurrency?.betLimit) {
@@ -457,14 +457,19 @@ export const SportsBet = async (req: Request, res: Response) => {
           status: false,
           info: generatInfo(),
         });
-        req.body.data.potential = data.reduce(
-          (sum: number, { odds }: { odds: number }) => (sum *= Number(odds)),
-          Number(stake)
-        );
-        req.body.data.odds = data.reduce(
-          (sum: number, { odds }: { odds: number }) => (sum *= Number(odds)),
-          1
-        );
+        if (type === "teaser") {
+          req.body.data.potential = Number(stake) * Number(req.body.data.odds);
+          req.body.data.odds = Number(stake);
+        } else {
+          req.body.data.potential = data.reduce(
+            (sum: number, { odds }: { odds: number }) => (sum *= Number(odds)),
+            Number(stake)
+          );
+          req.body.data.odds = data.reduce(
+            (sum: number, { odds }: { odds: number }) => (sum *= Number(odds)),
+            1
+          );
+        }
         req.body.data.betsId = betsId;
         await saveBet(req.body.data);
         req.body.data.bets = data;
@@ -541,7 +546,10 @@ export const SportsBet = async (req: Request, res: Response) => {
       req.app.get("io").emit("bet");
       return res.json({ data: req.body });
     } else {
-      const tstake = data.reduce((sum: number, { stake }: { stake: number }) => (sum += Number(stake)), 0);
+      const tstake = data.reduce(
+        (sum: number, { stake }: { stake: number }) => (sum += Number(stake)),
+        0
+      );
       // const isBet = await getActiveBet({ userId, currency, amount: tstake });
       const checked = await checkBalance({ userId, currency, amount: tstake });
       if (!checked) {
@@ -621,17 +629,17 @@ export const getBetHistory = async (req: Request, res: Response) => {
     _id: 0,
     permissionId: 0,
   });
-  if (type == "multi") {
+  if (type === "multi" || type === "teaser") {
     count = data[0].bettings.length;
   } else {
     count = data.length;
   }
   const total = data.reduce(
     (t, { bettings }) =>
-    (t += bettings.reduce(
-      (s: number, { odds }: { odds: number }) => (s *= Number(odds)),
-      1
-    )),
+      (t += bettings.reduce(
+        (s: number, { odds }: { odds: number }) => (s *= Number(odds)),
+        1
+      )),
     0
   );
   return res.json({
