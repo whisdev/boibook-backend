@@ -334,6 +334,18 @@ export const info = async (req: Request, res: Response) => {
       result = userInfo(user);
     }
   } else {
+    if (req.body.iReferral) {
+      const userByReferral = await Users.findOne({
+        iReferral: req.body.iReferral,
+      });
+      if (userByReferral != null) {
+        return res
+          .status(400)
+          .json(
+            `Your referral code ${req.body.iReferral} is used by another account.`
+          );
+      }
+    }
     const user = await Users.findOneAndUpdate(
       { _id: ObjectId(req.body.userId), status: true },
       req.body,
