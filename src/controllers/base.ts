@@ -166,7 +166,7 @@ export const handleBet = async ({
     const userId1 = ObjectId(userId);
     const userId2 = ObjectId(rUser._id);
     const amount1 = NumberFix(amount);
-    const amount2 = NumberFix(rUser.pReferal || 0.02);
+    const amount2 = NumberFix(amount * (rUser.pReferal || 0.02));
     const result1: any = await Balances.findOneAndUpdate(
       { userId: userId1, currency: ObjectId(currency) },
       { $inc: { balance: amount1 } },
@@ -201,7 +201,10 @@ export const handleBet = async ({
     });
     if (result1.status && !result1.disabled && req) {
       const session = await Sessions.findOne({ userId });
-      req.app.get("io").to(session?.socketId).emit("balance", { balance: result1.balance });
+      req.app
+        .get("io")
+        .to(session?.socketId)
+        .emit("balance", { balance: result1.balance });
     }
     return result1;
   } else {
@@ -223,7 +226,10 @@ export const handleBet = async ({
     });
     if (result.status && !result.disabled && req) {
       const session = await Sessions.findOne({ userId });
-      req.app.get("io").to(session?.socketId).emit("balance", { balance: result.balance });
+      req.app
+        .get("io")
+        .to(session?.socketId)
+        .emit("balance", { balance: result.balance });
     }
     return result;
   }
@@ -313,7 +319,7 @@ export const checkMaxBet = async ({
   currency: string;
   amount: number;
 }) => {
-  const data:any = await Currencies.findById(ObjectId(currency));
+  const data: any = await Currencies.findById(ObjectId(currency));
   if (data.maxBet >= amount && data.minBet <= amount) {
     return true;
   } else {
@@ -393,7 +399,7 @@ export const checkBalance = async ({
   currency: string;
   amount: number;
 }) => {
-  const balance:any = await Balances.findOne({
+  const balance: any = await Balances.findOne({
     userId: ObjectId(userId),
     currency: ObjectId(currency),
   });
