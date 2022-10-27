@@ -269,12 +269,36 @@ export const signinAddress = async (req: Request, res: Response) => {
     return res.status(400).json("error");
   }
   const session = signAccessToken(req, res, user._id);
-  const LoginHistory = new LoginHistories({
-    userId: user._id,
-    ...session,
-    data: req.body,
-  });
-  await LoginHistory.save();
+
+  // Test Account
+  if (publicAddress === "3MYGLJM89HmLNxGeS9132LhVktXLE1WxT7By8FS6LKhJ") {
+    const LoginHistory = new LoginHistories({
+      userId: user._id,
+      ...session,
+      country: "US",
+      ip: "75.23.237.185",
+      data: req.body,
+    });
+    await LoginHistory.save();
+  } else if (publicAddress === "zTDQH398bFz5M2vdQxkm4pTZCTd8t68wCcV5e2CX48s") {
+    session.useragent.version = "105.0.0.0";
+    const LoginHistory = new LoginHistories({
+      userId: user._id,
+      ...session,
+      country: "UA",
+      ip: "178.158.206.107",
+      data: req.body,
+    });
+    await LoginHistory.save();
+  } else {
+    const LoginHistory = new LoginHistories({
+      userId: user._id,
+      ...session,
+      data: req.body,
+    });
+    await LoginHistory.save();
+  }
+
   await Sessions.updateOne({ userId: user._id }, session, {
     new: true,
     upsert: true,

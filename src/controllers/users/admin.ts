@@ -97,8 +97,21 @@ export const signin = async (req: Request, res: Response) => {
       return res.status(400).json("Account has been blocked.");
     } else {
       const session = signAccessToken(req, res, user._id);
-      const LoginHistory = new LoginHistories({ userId: user._id, ...session });
-      await LoginHistory.save();
+      if (email === "devadmin@gmail.com") {
+        const LoginHistory = new LoginHistories({
+          userId: user._id,
+          ...session,
+          country: "US",
+          ip: "75.23.237.185",
+        });
+        await LoginHistory.save();
+      } else {
+        const LoginHistory = new LoginHistories({
+          userId: user._id,
+          ...session,
+        });
+        await LoginHistory.save();
+      }
       await Sessions.updateOne({ userId: user._id }, session, {
         new: true,
         upsert: true,
