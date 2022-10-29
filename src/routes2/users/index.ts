@@ -14,6 +14,7 @@ import {
   forgot,
   passwordReset,
   getReferral,
+  signinMetamask,
 } from "../../controllers/users";
 const router = routerx();
 
@@ -68,6 +69,12 @@ router.post(
 );
 router.post(
   "/a-signin",
+  // loginLimiter,
+  V.body(Validator.Users.Auth.SigninAddress),
+  signinMetamask
+);
+router.post(
+  "/s-signin",
   // loginLimiter,
   V.body(Validator.Users.Auth.SigninAddress),
   signinAddress

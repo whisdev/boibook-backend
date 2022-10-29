@@ -238,6 +238,59 @@ export const joinAddress = async (req: Request, res: Response) => {
   }
 };
 
+export const signinMetamask = async (req: Request, res: Response) => {
+  const { signature, publicAddress } = req.body;
+  const user: any = await Users.findOne({
+    publicAddress: {
+      $regex: new RegExp("^" + publicAddress.toLowerCase(), "i"),
+    },
+  });
+  if (!user) {
+    return res
+      .status(400)
+      .json(`User with publicAddress ${publicAddress} is not found.`);
+  } else if (!user.status) {
+    return res.status(400).json("Account has been blocked.");
+  }
+  const msg = `${process.env.SIGNIN_MESSAGE}: ${user.nonce}`;
+  const msgBufferHex = bufferToHex(Buffer.from(msg, "utf8"));
+  const address = recoverPersonalSignature({
+    data: msgBufferHex,
+    sig: signature,
+  });
+  if (address.toLowerCase() !== publicAddress.toLowerCase()) {
+    return res.status(400).json("Signature verification failed.");
+  }
+  user.nonce = Date.now();
+  const result = await user.save();
+  if (!result) {
+    return res.status(400).json("error");
+  }
+  const session = signAccessToken(req, res, user._id);
+  const LoginHistory = new LoginHistories({
+    userId: user._id,
+    ...session,
+    data: req.body,
+  });
+  await LoginHistory.save();
+  await Sessions.updateOne({ userId: user._id }, session, {
+    new: true,
+    upsert: true,
+  });
+  const userData = userInfo(user);
+  const sessionData = {
+    accessToken: session.accessToken,
+    refreshToken: session.refreshToken,
+  };
+  const balance: any = await getUserBalance(user._id);
+  return res.json({
+    status: true,
+    session: sessionData,
+    user: userData,
+    balance,
+  });
+};
+
 export const signinAddress = async (req: Request, res: Response) => {
   const { signature, publicAddress } = req.body;
   const user: any = await Users.findOne({
