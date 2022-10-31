@@ -14,7 +14,10 @@ import {
 } from "@solana/spl-token";
 import * as bs58 from "bs58";
 import axios from "axios";
-import { decrypt } from "../base";
+import * as SolanaWeb3 from "@solana/web3.js";
+export const ADMINPUB: string = "8Myhky6nWVJFeNkcBH3FE9i29KqV4qsD8reook3AUqYk";
+import { decrypt, ObjectId } from "../base";
+import { Payments, Users } from "../../models";
 
 const param = process.env.MODE === "dev" ? "testnet" : "mainnet-beta";
 const connection = new Connection(clusterApiUrl(param));
@@ -35,6 +38,68 @@ export const getTxnResult = async (signature: string) => {
     },
   });
   return res;
+};
+
+export const getPendingTxnResult = async (paymentID: string) => {
+  const payment: any = await Payments.findById(ObjectId(paymentID));
+  const user: any = await Users.findById(ObjectId(payment.userId));
+  const res = await getTxnResult(payment.signature);
+  var tResult = res.data.result;
+  console.log(tResult);
+  if (tResult) {
+    if (
+      tResult.transaction.message.accountKeys[2] ==
+      "11111111111111111111111111111111"
+    ) {
+      const realamount =
+        (tResult.meta.preBalances[0] -
+          tResult.meta.postBalances[0] -
+          tResult.meta.fee) /
+        SolanaWeb3.LAMPORTS_PER_SOL;
+
+      const fromAcc = tResult.transaction.message.accountKeys[0].toLowerCase();
+      const receiverAcc =
+        tResult.transaction.message.accountKeys[1].toLowerCase();
+
+      console.log(payment.amount, realamount);
+
+      if (
+        payment.amount == realamount &&
+        (user.email.toLowerCase() == fromAcc ||
+          user.email.toLowerCase() == receiverAcc) &&
+        (ADMINPUB.toLowerCase() == fromAcc ||
+          ADMINPUB.toLowerCase() == receiverAcc)
+      ) {
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      const preTokenB = tResult.meta.preTokenBalances;
+      const postTokenB = tResult.meta.postTokenBalances;
+      const realamount = Math.abs(
+        preTokenB[0].uiTokenAmount.uiAmount -
+          postTokenB[0].uiTokenAmount.uiAmount
+      );
+      const fromAcc = preTokenB[0].owner.toLowerCase();
+      const tokenMintAcc = preTokenB[0].mint.toLowerCase();
+      const receiverAcc = postTokenB[1].owner.toLowerCase();
+      if (
+        payment.amount == realamount &&
+        (payment.address.toLowerCase() == payment.addressAcc ||
+          user.email.toLowerCase() == receiverAcc) &&
+        payment.address.toLowerCase() == tokenMintAcc &&
+        (ADMINPUB.toLowerCase() == fromAcc ||
+          ADMINPUB.toLowerCase() == receiverAcc)
+      ) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+  } else {
+    return false;
+  }
 };
 
 export const transferSOL = async (amount: any, destAddress: any) => {

@@ -1,6 +1,7 @@
 import { Payments } from "../../models";
 import { Request, Response } from "express";
 import { balanceUpdate, ObjectId } from "../base";
+import { getPendingTxnResult } from "./transaction";
 
 const aggregateQuery = [
   {
@@ -46,6 +47,11 @@ export const getOne = async (req: Request, res: Response) => {
     ...aggregateQuery,
   ]);
   return res.json(result[0]);
+};
+
+export const checkOne = async (req: Request, res: Response) => {
+  const pResult = await getPendingTxnResult(req.params.id);
+  return res.json({ true: pResult });
 };
 
 export const list = async (req: Request, res: Response) => {
