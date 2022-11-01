@@ -53,9 +53,6 @@ export const checkOne = async (req: Request, res: Response) => {
   const { status, amount, balanceId } = await getPendingTxnResult(
     req.params.id
   );
-  console.log("===== status, amount, balanceId =====");
-  console.log(status, amount, balanceId);
-  console.log("===== status, amount, balanceId =====");
   if (status == true) {
     await Payments.findByIdAndUpdate(
       ObjectId(req.params.id),
