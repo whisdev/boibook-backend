@@ -8,6 +8,7 @@ import {
   transferSOL,
   getTxnResult,
   getSOLbalance,
+  getPendingTxnResult,
 } from "./transaction";
 import { Balances, Currencies, Payments } from "../../models";
 import { balanceUpdate, ObjectId } from "../base";
@@ -63,15 +64,8 @@ export const deposit = async (req: Request, res: Response) => {
 };
 
 export const depositSolana = async (req: Request, res: Response) => {
-  const {
-    userId,
-    balanceId,
-    currencyId,
-    signature,
-    amount,
-    address,
-    from,
-  } = req.body;
+  const { userId, balanceId, currencyId, signature, amount, address, from } =
+    req.body;
   const currency: any = await Currencies.findById(currencyId);
   const balances = await Balances.findOne({
     userId: ObjectId(userId),
@@ -108,82 +102,31 @@ export const depositSolana = async (req: Request, res: Response) => {
     if (paymentResult.status === 100 || paymentResult.status === -1) {
       return clearTimeout(timer);
     } else {
-      const res = await getTxnResult(signature);
-      if (!res.status) {
+      const { status, amount, balanceId } = await getPendingTxnResult(
+        req.params.id
+      );
+      console.log("===== status, amount, balanceId =====");
+      console.log(status, amount, balanceId);
+      console.log("===== status, amount, balanceId =====");
+      if (status == false) {
         await Payments.updateOne(
           { _id: payment._id },
           { status: -1, status_text: "canceled" }
         );
         return clearTimeout(timer);
       } else {
-        var tResult = res.data.result;
-        if (tResult) {
-          if (
-            tResult.transaction.message.accountKeys[2] ==
-            "11111111111111111111111111111111"
-          ) {
-            const realamount =
-              (tResult.meta.preBalances[0] -
-                tResult.meta.postBalances[0] -
-                tResult.meta.fee) /
-              SolanaWeb3.LAMPORTS_PER_SOL;
-
-            const fromAcc = tResult.transaction.message.accountKeys[0].toLowerCase();
-            const receiverAcc = tResult.transaction.message.accountKeys[1].toLowerCase();
-
-            if ((from.toLowerCase() == fromAcc ||
-              from.toLowerCase() == receiverAcc) &&
-              (ADMINPUB.toLowerCase() == fromAcc ||
-                ADMINPUB.toLowerCase() == receiverAcc)
-            ) {
-              await Payments.findByIdAndUpdate(
-                ObjectId(payment._id),
-                { status: 100, status_text: "confirmed", amount: realamount },
-                { new: true }
-              );
-              await balanceUpdate({
-                req,
-                balanceId,
-                amount: realamount,
-                type: "deposit-solana",
-              });
-              return clearTimeout(timer);
-            } else {
-              return clearTimeout(timer);
-            }
-          } else {
-            const preTokenB = tResult.meta.preTokenBalances;
-            const postTokenB = tResult.meta.postTokenBalances;
-            const realamount = Math.abs(
-              preTokenB[0].uiTokenAmount.uiAmount -
-              postTokenB[0].uiTokenAmount.uiAmount
-            );
-            const fromAcc = preTokenB[0].owner.toLowerCase();
-            const tokenMintAcc = preTokenB[0].mint.toLowerCase();
-            const receiverAcc = postTokenB[1].owner.toLowerCase();
-            if ((from.toLowerCase() == fromAcc ||
-              from.toLowerCase() == receiverAcc) &&
-              address.toLowerCase() == tokenMintAcc &&
-              (ADMINPUB.toLowerCase() == fromAcc ||
-                ADMINPUB.toLowerCase() == receiverAcc)
-            ) {
-              await Payments.findByIdAndUpdate(
-                ObjectId(payment._id),
-                { status: 100, status_text: "confirmed", amount: realamount },
-                { new: true }
-              );
-              await balanceUpdate({
-                req,
-                balanceId,
-                amount: realamount,
-                type: "deposit-solana",
-              });
-              return clearTimeout(timer);
-            } else {
-              return clearTimeout(timer);
-            }
-          }
-        }
+        await Payments.findByIdAndUpdate(
+          ObjectId(payment._id),
+          { status: 100, status_text: "confirmed", amount },
+          { new: true }
+        );
+        await balanceUpdate({
+          req,
+          balanceId,
+          amount,
+          type: "deposit-solana",
+        });
+        return clearTimeout(timer);
       }
     }
     timeout++;
