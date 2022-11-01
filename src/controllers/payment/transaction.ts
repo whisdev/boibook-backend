@@ -20,11 +20,24 @@ import { decrypt, ObjectId } from "../base";
 import { Payments, Users } from "../../models";
 
 const param = process.env.MODE === "dev" ? "testnet" : "mainnet-beta";
-const connection = new Connection(clusterApiUrl(param));
 const URL = clusterApiUrl(param);
 
 const PRIVKEY: any = decrypt(process.env.PRIVKEY as string);
 const txWallet = Keypair.fromSecretKey(bs58.decode(PRIVKEY));
+
+export const solanaRPCurls = () => {
+  return [
+    "https://api.mainnet-beta.solana.com",
+    "https://solana-api.projectserum.com",
+    "https://rpc.ankr.com/solana",
+  ];
+};
+
+export const getConnection = () => {
+  const rpcurls = solanaRPCurls();
+  const connection = new Connection(rpcurls[Math.floor(Math.random() * 3)]);
+  return connection;
+};
 
 export const getTxnResult = async (signature: string) => {
   const res = await axios(URL, {
@@ -42,12 +55,11 @@ export const getTxnResult = async (signature: string) => {
 
 export const getPendingTxnResult = async (paymentID: string) => {
   const payment: any = await Payments.findById(ObjectId(paymentID));
-  console.log(payment);
   const user: any = await Users.findById(ObjectId(payment.userId));
   const res = await getTxnResult(payment.signature);
   var tResult = res.data.result;
-  console.log(tResult);
-  var status = false, amount = 0;
+  var status = false,
+    amount = 0;
   if (tResult) {
     if (
       tResult.transaction.message.accountKeys[2] ==
@@ -63,7 +75,6 @@ export const getPendingTxnResult = async (paymentID: string) => {
       const receiverAcc =
         tResult.transaction.message.accountKeys[1].toLowerCase();
 
-      console.log(payment.amount, realamount);
       amount = realamount;
 
       if (
@@ -104,6 +115,7 @@ export const getPendingTxnResult = async (paymentID: string) => {
 };
 
 export const transferSOL = async (amount: any, destAddress: any) => {
+  const connection = getConnection();
   let transaction = new Transaction().add(
     SystemProgram.transfer({
       fromPubkey: txWallet.publicKey,
@@ -124,6 +136,7 @@ export const transferToken = async (
   amount: any,
   destAddress: any
 ) => {
+  const connection = getConnection();
   const mintPubkey = new PublicKey(tokenMintAddress);
 
   const destPubkey = new PublicKey(destAddress);
@@ -171,6 +184,7 @@ export const transferToken = async (
 };
 
 export const getSOLbalance = async (walletAddress: string, currency: any) => {
+  const connection = getConnection();
   const ownerPubkey = new PublicKey(walletAddress);
   let tokenBalance: any;
   try {
