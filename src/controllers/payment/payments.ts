@@ -1,6 +1,7 @@
 import { Payments } from "../../models";
 import { Request, Response } from "express";
 import { balanceUpdate, ObjectId } from "../base";
+import { getPendingTxnResult } from "./transaction";
 
 const aggregateQuery = [
   {
@@ -46,6 +47,31 @@ export const getOne = async (req: Request, res: Response) => {
     ...aggregateQuery,
   ]);
   return res.json(result[0]);
+};
+
+export const checkOne = async (req: Request, res: Response) => {
+  const { status, amount, balanceId } = await getPendingTxnResult(
+    req.params.id
+  );
+  console.log("===== status, amount, balanceId =====");
+  console.log(status, amount, balanceId);
+  console.log("===== status, amount, balanceId =====");
+  if (status == true) {
+    await Payments.findByIdAndUpdate(
+      ObjectId(req.params.id),
+      { status: 100, status_text: "confirmed", amount },
+      { new: true }
+    );
+    await balanceUpdate({
+      req,
+      balanceId,
+      amount,
+      type: "deposit-solana",
+    });
+    return res.json(status);
+  } else {
+    return res.json(status);
+  }
 };
 
 export const list = async (req: Request, res: Response) => {

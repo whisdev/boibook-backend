@@ -5,6 +5,7 @@ import {
   deleteOne,
   get,
   getOne,
+  checkOne,
   list,
   updateOne,
   csv,
@@ -31,5 +32,6 @@ router.post(
   verifyAdminToken,
   approveWithdrawal
 );
+router.post("/check/:id", V.params(Validator.ObjectId), checkOne);
 
 export default router;
