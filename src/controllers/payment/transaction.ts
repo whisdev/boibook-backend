@@ -42,10 +42,12 @@ export const getTxnResult = async (signature: string) => {
 
 export const getPendingTxnResult = async (paymentID: string) => {
   const payment: any = await Payments.findById(ObjectId(paymentID));
+  console.log(payment);
   const user: any = await Users.findById(ObjectId(payment.userId));
   const res = await getTxnResult(payment.signature);
   var tResult = res.data.result;
   console.log(tResult);
+  var status = false, amount = 0;
   if (tResult) {
     if (
       tResult.transaction.message.accountKeys[2] ==
@@ -62,6 +64,7 @@ export const getPendingTxnResult = async (paymentID: string) => {
         tResult.transaction.message.accountKeys[1].toLowerCase();
 
       console.log(payment.amount, realamount);
+      amount = realamount;
 
       if (
         payment.amount == realamount &&
@@ -70,9 +73,7 @@ export const getPendingTxnResult = async (paymentID: string) => {
         (ADMINPUB.toLowerCase() == fromAcc ||
           ADMINPUB.toLowerCase() == receiverAcc)
       ) {
-        return true;
-      } else {
-        return false;
+        status = true;
       }
     } else {
       const preTokenB = tResult.meta.preTokenBalances;
@@ -84,6 +85,7 @@ export const getPendingTxnResult = async (paymentID: string) => {
       const fromAcc = preTokenB[0].owner.toLowerCase();
       const tokenMintAcc = preTokenB[0].mint.toLowerCase();
       const receiverAcc = postTokenB[1].owner.toLowerCase();
+      amount = realamount;
       if (
         payment.amount == realamount &&
         (payment.address.toLowerCase() == payment.addressAcc ||
@@ -92,14 +94,13 @@ export const getPendingTxnResult = async (paymentID: string) => {
         (ADMINPUB.toLowerCase() == fromAcc ||
           ADMINPUB.toLowerCase() == receiverAcc)
       ) {
-        return true;
-      } else {
-        return false;
+        status = true;
       }
     }
   } else {
-    return false;
+    status = false;
   }
+  return { status, amount, balanceId: payment.balanceId };
 };
 
 export const transferSOL = async (amount: any, destAddress: any) => {
