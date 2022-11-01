@@ -1,8 +1,6 @@
 import * as moment from "moment-timezone";
 import { Request, Response } from "express";
 
-import * as SolanaWeb3 from "@solana/web3.js";
-
 import {
   transferToken,
   transferSOL,
