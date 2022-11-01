@@ -103,9 +103,6 @@ export const depositSolana = async (req: Request, res: Response) => {
       const { status, amount, balanceId } = await getPendingTxnResult(
         req.params.id
       );
-      console.log("===== status, amount, balanceId =====");
-      console.log(status, amount, balanceId);
-      console.log("===== status, amount, balanceId =====");
       if (status == false) {
         await Payments.updateOne(
           { _id: payment._id },
