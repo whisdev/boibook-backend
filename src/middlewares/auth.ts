@@ -16,7 +16,7 @@ var whitelist: any = [];
 if (process.env.MODE === "dev") {
   whitelist = ["http://localhost:3000", "http://localhost:2022"];
 } else {
-  whitelist = ["https://boibook.io", "https://admin.boibook.io", "https://www.boibook.io", "https://www.admin.boibook.io"];
+  whitelist = ["https://boibook.io", "https://admin.boibook.io", "https://www.boibook.io", "https://www.admin.boibook.io", "https://test.boibook.io", "https://www.test.boibook.io"];
 }
 
 const apilist = [
