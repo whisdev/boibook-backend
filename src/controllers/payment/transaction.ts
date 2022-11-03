@@ -56,62 +56,69 @@ export const getTxnResult = async (signature: string) => {
 export const getPendingTxnResult = async (paymentID: string) => {
   const payment: any = await Payments.findById(ObjectId(paymentID));
   const user: any = await Users.findById(ObjectId(payment.userId));
-  const res = await getTxnResult(payment.signature);
-  var tResult = res.data.result;
-  var status = false,
-    amount = 0;
-  if (tResult) {
-    if (
-      tResult.transaction.message.accountKeys[2] ==
-      "11111111111111111111111111111111"
-    ) {
-      const realamount =
-        (tResult.meta.preBalances[0] -
-          tResult.meta.postBalances[0] -
-          tResult.meta.fee) /
-        SolanaWeb3.LAMPORTS_PER_SOL;
-
-      const fromAcc = tResult.transaction.message.accountKeys[0].toLowerCase();
-      const receiverAcc =
-        tResult.transaction.message.accountKeys[1].toLowerCase();
-
-      amount = realamount;
-
+  try {
+    const res = await getTxnResult(payment.signature);
+    var tResult = res.data.result;
+    var status = false,
+      amount = 0;
+    if (tResult) {
       if (
-        payment.amount == realamount &&
-        (user.publicAddress.toLowerCase() == fromAcc ||
-          user.publicAddress.toLowerCase() == receiverAcc) &&
-        (ADMINPUB.toLowerCase() == fromAcc ||
-          ADMINPUB.toLowerCase() == receiverAcc)
+        tResult.transaction.message.accountKeys[2] ==
+        "11111111111111111111111111111111"
       ) {
-        status = true;
+        const realamount =
+          (tResult.meta.preBalances[0] -
+            tResult.meta.postBalances[0] -
+            tResult.meta.fee) /
+          SolanaWeb3.LAMPORTS_PER_SOL;
+
+        const fromAcc =
+          tResult.transaction.message.accountKeys[0].toLowerCase();
+        const receiverAcc =
+          tResult.transaction.message.accountKeys[1].toLowerCase();
+
+        amount = realamount;
+
+        if (
+          payment.amount == realamount &&
+          (user.publicAddress.toLowerCase() == fromAcc ||
+            user.publicAddress.toLowerCase() == receiverAcc) &&
+          (ADMINPUB.toLowerCase() == fromAcc ||
+            ADMINPUB.toLowerCase() == receiverAcc)
+        ) {
+          status = true;
+        }
+      } else {
+        const preTokenB = tResult.meta.preTokenBalances;
+        const postTokenB = tResult.meta.postTokenBalances;
+        const realamount = Math.abs(
+          preTokenB[0].uiTokenAmount.uiAmount -
+            postTokenB[0].uiTokenAmount.uiAmount
+        );
+        const fromAcc = preTokenB[0].owner.toLowerCase();
+        const tokenMintAcc = preTokenB[0].mint.toLowerCase();
+        const receiverAcc = postTokenB[1].owner.toLowerCase();
+        amount = realamount;
+        if (
+          payment.amount == realamount &&
+          (user.publicAddress.toLowerCase() == fromAcc ||
+            user.publicAddress.toLowerCase() == receiverAcc) &&
+          payment.address.toLowerCase() == tokenMintAcc &&
+          (ADMINPUB.toLowerCase() == fromAcc ||
+            ADMINPUB.toLowerCase() == receiverAcc)
+        ) {
+          status = true;
+        }
       }
     } else {
-      const preTokenB = tResult.meta.preTokenBalances;
-      const postTokenB = tResult.meta.postTokenBalances;
-      const realamount = Math.abs(
-        preTokenB[0].uiTokenAmount.uiAmount -
-          postTokenB[0].uiTokenAmount.uiAmount
-      );
-      const fromAcc = preTokenB[0].owner.toLowerCase();
-      const tokenMintAcc = preTokenB[0].mint.toLowerCase();
-      const receiverAcc = postTokenB[1].owner.toLowerCase();
-      amount = realamount;
-      if (
-        payment.amount == realamount &&
-        (user.publicAddress.toLowerCase() == fromAcc ||
-          user.publicAddress.toLowerCase() == receiverAcc) &&
-        payment.address.toLowerCase() == tokenMintAcc &&
-        (ADMINPUB.toLowerCase() == fromAcc ||
-          ADMINPUB.toLowerCase() == receiverAcc)
-      ) {
-        status = true;
-      }
+      status = false;
     }
-  } else {
-    status = false;
+    return { status, amount, balanceId: payment.balanceId };
+  } catch (error) {
+    console.log("=========== catch up ===========");
+    console.log(error);
+    return { status: false, amount: 0, balanceId: payment.balanceId };
   }
-  return { status, amount, balanceId: payment.balanceId };
 };
 
 export const transferSOL = async (amount: any, destAddress: any) => {
