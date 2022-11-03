@@ -101,7 +101,7 @@ export const depositSolana = async (req: Request, res: Response) => {
       return clearTimeout(timer);
     } else {
       const { status, amount, balanceId } = await getPendingTxnResult(
-        req.params.id
+        payment._id
       );
       // await Payments.updateOne(
       //   { _id: payment._id },
