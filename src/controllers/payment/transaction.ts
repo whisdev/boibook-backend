@@ -99,7 +99,7 @@ export const getPendingTxnResult = async (paymentID: string) => {
       amount = realamount;
       if (
         payment.amount == realamount &&
-        (payment.address.toLowerCase() == payment.addressAcc ||
+        (user.email.toLowerCase() == fromAcc ||
           user.email.toLowerCase() == receiverAcc) &&
         payment.address.toLowerCase() == tokenMintAcc &&
         (ADMINPUB.toLowerCase() == fromAcc ||
