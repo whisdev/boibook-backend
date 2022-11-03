@@ -33,15 +33,19 @@ export const solanaRPCurls = () => {
   ];
 };
 
-export const getConnection = () => {
+export const getRPCurl = () => {
   const rpcurls = solanaRPCurls();
-  const connection = new Connection(rpcurls[Math.floor(Math.random() * 3)]);
+  return rpcurls[Math.floor(Math.random() * 3)];
+};
+
+export const getConnection = () => {
+  const connection = new Connection(getRPCurl());
   return connection;
 };
 
 export const getTxnResult = async (signature: string) => {
   try {
-    const res = await axios(URL, {
+    const res = await axios(getRPCurl(), {
       method: "POST",
       headers: { "content-type": "application/json" },
       data: {
@@ -61,16 +65,22 @@ export const getTxnResult = async (signature: string) => {
 
 export const getPendingTxnResult = async (paymentID: string) => {
   const payment: any = await Payments.findById(ObjectId(paymentID));
-  console.log(payment);
   const user: any = await Users.findById(ObjectId(payment.userId));
   const res: any = await getTxnResult(payment.signature);
+  let signatureFlag = "pending";
   if (res == false) {
-    return { status: false, amount: 0, balanceId: payment.balanceId };
+    return {
+      signatureFlag,
+      status: false,
+      amount: 0,
+      balanceId: payment.balanceId,
+    };
   } else {
     var tResult = res.data.result;
     var status = false,
       amount = 0;
     if (tResult) {
+      signatureFlag = "good";
       if (
         tResult.transaction.message.accountKeys[2] ==
         "11111111111111111111111111111111"
@@ -120,9 +130,10 @@ export const getPendingTxnResult = async (paymentID: string) => {
         }
       }
     } else {
+      signatureFlag = "bad";
       status = false;
     }
-    return { status, amount, balanceId: payment.balanceId };
+    return { signatureFlag, status, amount, balanceId: payment.balanceId };
   }
 };
 
