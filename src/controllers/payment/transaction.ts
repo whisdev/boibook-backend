@@ -77,6 +77,9 @@ export const getPendingTxnResult = async (paymentID: string) => {
     };
   } else {
     var tResult = res.data.result;
+    console.log("================================");
+    console.log(tResult);
+    console.log("================================");
     var status = false,
       amount = 0;
     if (tResult) {
