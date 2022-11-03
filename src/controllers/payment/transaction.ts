@@ -40,24 +40,32 @@ export const getConnection = () => {
 };
 
 export const getTxnResult = async (signature: string) => {
-  const res = await axios(URL, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    data: {
-      jsonrpc: "2.0",
-      id: "get-transaction",
-      method: "getTransaction",
-      params: [signature],
-    },
-  });
-  return res;
+  try {
+    const res = await axios(URL, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      data: {
+        jsonrpc: "2.0",
+        id: "get-transaction",
+        method: "getTransaction",
+        params: [signature],
+      },
+    });
+    return res;
+  } catch (error) {
+    console.log("=========== catch up ===========");
+    console.log(error);
+    return false;
+  }
 };
 
 export const getPendingTxnResult = async (paymentID: string) => {
   const payment: any = await Payments.findById(ObjectId(paymentID));
   const user: any = await Users.findById(ObjectId(payment.userId));
-  try {
-    const res = await getTxnResult(payment.signature);
+  const res: any = await getTxnResult(payment.signature);
+  if (res == false) {
+    return { status: false, amount: 0, balanceId: payment.balanceId };
+  } else {
     var tResult = res.data.result;
     var status = false,
       amount = 0;
@@ -114,10 +122,6 @@ export const getPendingTxnResult = async (paymentID: string) => {
       status = false;
     }
     return { status, amount, balanceId: payment.balanceId };
-  } catch (error) {
-    console.log("=========== catch up ===========");
-    console.log(error);
-    return { status: false, amount: 0, balanceId: payment.balanceId };
   }
 };
 
