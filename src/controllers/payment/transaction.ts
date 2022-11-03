@@ -79,8 +79,8 @@ export const getPendingTxnResult = async (paymentID: string) => {
 
       if (
         payment.amount == realamount &&
-        (user.email.toLowerCase() == fromAcc ||
-          user.email.toLowerCase() == receiverAcc) &&
+        (user.publicAddress.toLowerCase() == fromAcc ||
+          user.publicAddress.toLowerCase() == receiverAcc) &&
         (ADMINPUB.toLowerCase() == fromAcc ||
           ADMINPUB.toLowerCase() == receiverAcc)
       ) {
@@ -99,8 +99,8 @@ export const getPendingTxnResult = async (paymentID: string) => {
       amount = realamount;
       if (
         payment.amount == realamount &&
-        (user.email.toLowerCase() == fromAcc ||
-          user.email.toLowerCase() == receiverAcc) &&
+        (user.publicAddress.toLowerCase() == fromAcc ||
+          user.publicAddress.toLowerCase() == receiverAcc) &&
         payment.address.toLowerCase() == tokenMintAcc &&
         (ADMINPUB.toLowerCase() == fromAcc ||
           ADMINPUB.toLowerCase() == receiverAcc)
