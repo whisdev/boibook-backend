@@ -102,13 +102,14 @@ export const depositSolana = async (req: Request, res: Response) => {
     } else {
       const { signatureFlag, status, amount, balanceId } =
         await getPendingTxnResult(payment._id);
-      if (signatureFlag == "bad") {
-        await Payments.updateOne(
-          { _id: payment._id },
-          { status: -1, status_text: "canceled" }
-        );
-        return clearTimeout(timer);
-      } else if (status == true) {
+      // if (signatureFlag == "bad") {
+      //   await Payments.updateOne(
+      //     { _id: payment._id },
+      //     { status: -1, status_text: "canceled" }
+      //   );
+      //   return clearTimeout(timer);
+      // } else
+      if (status == true) {
         await Payments.findByIdAndUpdate(
           ObjectId(payment._id),
           { status: 100, status_text: "confirmed", amount },
