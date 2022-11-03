@@ -65,6 +65,7 @@ export const getTxnResult = async (signature: string) => {
 
 export const getPendingTxnResult = async (paymentID: string) => {
   const payment: any = await Payments.findById(ObjectId(paymentID));
+  console.log(payment);
   const user: any = await Users.findById(ObjectId(payment.userId));
   const res: any = await getTxnResult(payment.signature);
   let signatureFlag = "pending";
