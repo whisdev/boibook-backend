@@ -100,15 +100,15 @@ export const depositSolana = async (req: Request, res: Response) => {
     if (paymentResult.status === 100 || paymentResult.status === -1) {
       return clearTimeout(timer);
     } else {
-      const { status, amount, balanceId } = await getPendingTxnResult(
-        payment._id
-      );
-      // await Payments.updateOne(
-      //   { _id: payment._id },
-      //   { status: -1, status_text: "canceled" }
-      // );
-      // return clearTimeout(timer);
-      if (status == true) {
+      const { signatureFlag, status, amount, balanceId } =
+        await getPendingTxnResult(payment._id);
+      if (signatureFlag == "bad") {
+        await Payments.updateOne(
+          { _id: payment._id },
+          { status: -1, status_text: "canceled" }
+        );
+        return clearTimeout(timer);
+      } else if (status == true) {
         await Payments.findByIdAndUpdate(
           ObjectId(payment._id),
           { status: 100, status_text: "confirmed", amount },
