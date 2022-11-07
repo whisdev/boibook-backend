@@ -18,6 +18,7 @@ import * as SolanaWeb3 from "@solana/web3.js";
 export const ADMINPUB: string = "8Myhky6nWVJFeNkcBH3FE9i29KqV4qsD8reook3AUqYk";
 import { decrypt, ObjectId } from "../base";
 import { Payments, Users } from "../../models";
+import { getSolanaConnection, getSolanaRPCurl } from "../../utils/payments";
 
 const param = process.env.MODE === "dev" ? "testnet" : "mainnet-beta";
 const URL = clusterApiUrl(param);
@@ -25,27 +26,10 @@ const URL = clusterApiUrl(param);
 const PRIVKEY: any = decrypt(process.env.PRIVKEY as string);
 const txWallet = Keypair.fromSecretKey(bs58.decode(PRIVKEY));
 
-export const solanaRPCurls = () => {
-  return [
-    "https://api.mainnet-beta.solana.com",
-    "https://solana-api.projectserum.com",
-    "https://rpc.ankr.com/solana",
-  ];
-};
 
-export const getRPCurl = () => {
-  const rpcurls = solanaRPCurls();
-  return rpcurls[Math.floor(Math.random() * 3)];
-};
-
-export const getConnection = () => {
-  const connection = new Connection(getRPCurl());
-  return connection;
-};
-
-export const getTxnResult = async (signature: string) => {
+export const getSolanaTxnResult = async (signature: string) => {
   try {
-    const res = await axios(getRPCurl(), {
+    const res = await axios(getSolanaRPCurl(), {
       method: "POST",
       headers: { "content-type": "application/json" },
       data: {
@@ -63,10 +47,10 @@ export const getTxnResult = async (signature: string) => {
   }
 };
 
-export const getPendingTxnResult = async (paymentID: string) => {
+export const getPendingSolanaTxnResult = async (paymentID: string) => {
   const payment: any = await Payments.findById(ObjectId(paymentID));
   const user: any = await Users.findById(ObjectId(payment.userId));
-  const res: any = await getTxnResult(payment.signature);
+  const res: any = await getSolanaTxnResult(payment.signature);
   let signatureFlag = "pending";
   if (res == false) {
     return {
@@ -138,7 +122,7 @@ export const getPendingTxnResult = async (paymentID: string) => {
 };
 
 export const transferSOL = async (amount: any, destAddress: any) => {
-  const connection = getConnection();
+  const connection = getSolanaConnection();
   let transaction = new Transaction().add(
     SystemProgram.transfer({
       fromPubkey: txWallet.publicKey,
@@ -159,7 +143,7 @@ export const transferToken = async (
   amount: any,
   destAddress: any
 ) => {
-  const connection = getConnection();
+  const connection = getSolanaConnection();
   const mintPubkey = new PublicKey(tokenMintAddress);
 
   const destPubkey = new PublicKey(destAddress);
@@ -207,7 +191,7 @@ export const transferToken = async (
 };
 
 export const getSOLbalance = async (walletAddress: string, currency: any) => {
-  const connection = getConnection();
+  const connection = getSolanaConnection();
   const ownerPubkey = new PublicKey(walletAddress);
   let tokenBalance: any;
   try {

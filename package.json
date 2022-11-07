@@ -22,7 +22,6 @@
   },
   "license": "ISC",
   "dependencies": {
-    "52-deck": "^1.1.0",
     "@project-serum/anchor": "^0.22.1",
     "@solana/spl-token": "^0.3.4",
     "@solana/web3.js": "^1.54.0",
@@ -44,6 +43,7 @@
     "@types/randomstring": "^1.1.8",
     "@types/request": "^2.48.8",
     "@types/request-ip": "^0.0.37",
+    "52-deck": "^1.1.0",
     "axios": "^0.27.2",
     "bcrypt-nodejs": "^0.0.3",
     "bs58": "^5.0.0",
@@ -80,7 +80,8 @@
     "request-ip": "^2.2.0",
     "rotating-file-stream": "^3.0.4",
     "socket.io": "^4.5.1",
-    "tweetnacl": "^1.0.3"
+    "tweetnacl": "^1.0.3",
+    "web3": "^1.7.3"
   },
   "devDependencies": {
     "@types/ejs": "^3.1.1",
