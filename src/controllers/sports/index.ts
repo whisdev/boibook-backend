@@ -370,6 +370,20 @@ export const SportsBet = async (req: Request, res: Response) => {
   if (type === "multi" || type === "teaser") {
     const betsData = [] as any;
     let bets = req.body.data.bets;
+    const betslip = bets
+      .map((item: any) => item.eventId)
+      .reduce(
+        (a: any, c: any) => ((a[c] = (a[c] || 0) + 1), a),
+        Object.create(null)
+      );
+    const betslipDt: any = Object.values(betslip) as any;
+    if (betslipDt.find((e: number) => e > 1)) {
+      return res
+        .status(400)
+        .json(
+          "Multiple selections from some event cannot be combined into a Multibet."
+        );
+    }
     if (req.body.data.potential > betCurrency?.betLimit) {
       return res
         .status(400)
