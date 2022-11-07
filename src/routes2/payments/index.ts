@@ -11,6 +11,7 @@ import {
   withdrawal,
   getTransactions,
   depositSolana,
+  depositMetamask,
   cancelWithdrawal,
 } from "../../controllers/payment";
 const router = routerx();
@@ -46,13 +47,22 @@ router.post(
   deposit
 );
 router.post(
-  "/m-deposit",
+  "/s-deposit",
   Mlimiter,
   depositlimiter,
   V.body(Validator.Payments.Payment.SolanaDeposit),
   verifyToken,
   checkUser,
   depositSolana
+);
+router.post(
+  "/m-deposit",
+  Mlimiter,
+  depositlimiter,
+  V.body(Validator.Payments.Payment.MetamaskDeposit),
+  verifyToken,
+  checkUser,
+  depositMetamask
 );
 router.post(
   "/withdrawal",

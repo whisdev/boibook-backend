@@ -1,18 +1,22 @@
 import * as moment from "moment-timezone";
 import { Request, Response } from "express";
+import request = require("request");
 
 import {
   transferToken,
   transferSOL,
-  getTxnResult,
+  getSolanaTxnResult,
   getSOLbalance,
-  getPendingTxnResult,
+  getPendingSolanaTxnResult,
 } from "./transaction";
 import { Balances, Currencies, Payments } from "../../models";
 import { balanceUpdate, ObjectId } from "../base";
-import request = require("request");
+import { getBinanceRPCurl, getEtherRPCurl } from "../../utils/payments";
 
-export const ADMINPUB: string = "8Myhky6nWVJFeNkcBH3FE9i29KqV4qsD8reook3AUqYk";
+const Web3 = require("web3");
+
+export const ADMINSPUB: string = "8Myhky6nWVJFeNkcBH3FE9i29KqV4qsD8reook3AUqYk";
+export const ADMINMPUB: string = "0xaE6DA5F0Aee84F79586e61DB145f685c77D7a7eD";
 export const WFEE: number = Number(0.0125 || process.env.WFEE);
 
 export const deposit = async (req: Request, res: Response) => {
@@ -101,7 +105,7 @@ export const depositSolana = async (req: Request, res: Response) => {
       return clearTimeout(timer);
     } else {
       const { signatureFlag, status, amount, balanceId } =
-        await getPendingTxnResult(payment._id);
+        await getPendingSolanaTxnResult(payment._id);
       // if (signatureFlag == "bad") {
       //   await Payments.updateOne(
       //     { _id: payment._id },
@@ -122,6 +126,141 @@ export const depositSolana = async (req: Request, res: Response) => {
           type: "deposit-solana",
         });
         return clearTimeout(timer);
+      }
+    }
+    timeout++;
+    timer = setTimeout(timerfunc, 10000);
+    if (timeout === 360) {
+      return clearTimeout(timer);
+    }
+  }
+  timer = setTimeout(timerfunc, 10000);
+};
+
+export const depositMetamask = async (req: Request, res: Response) => {
+  const { userId, balanceId, currencyId, signature, amounti, address, from } =
+    req.body;
+  const currency: any = await Currencies.findById(currencyId);
+  const balances = await Balances.findOne({
+    userId: ObjectId(userId),
+    _id: ObjectId(balanceId),
+    currency: ObjectId(currencyId),
+  });
+  if (!balances) {
+    return res.status(400).json("Invalid field!");
+  }
+  const amount = amounti / 10 ** currency.decimals;
+  const result = await Payments.findOne({ signature });
+  if (result) return res.json({});
+  const payment: any = await Payments.findOneAndUpdate(
+    { signature },
+    {
+      userId,
+      balanceId,
+      currencyId: currencyId,
+      currency: currency.payment,
+      amount,
+      address,
+      status: 1,
+      method: 0,
+      ipn_type: "deposit",
+      status_text: "deposited",
+      signature,
+    },
+    { upsert: true, new: true }
+  );
+  res.json(payment);
+  let timeout = 0;
+  let timer = null as any;
+
+  const currencyResult: any = await Currencies.findById(ObjectId(currencyId));
+  let EthereumWeb3: any;
+  if (currencyResult.network == "binance") {
+    EthereumWeb3 = new Web3(getBinanceRPCurl());
+  } else {
+    EthereumWeb3 = new Web3(getEtherRPCurl());
+  }
+
+  async function timerfunc() {
+    const paymentResult: any = await Payments.findById(ObjectId(payment._id));
+    if (paymentResult.status === 100 || paymentResult.status === -1) {
+      return clearTimeout(timer);
+    } else {
+      const responseReceipt = await EthereumWeb3.eth.getTransactionReceipt(
+        signature
+      );
+      if (!responseReceipt) {
+      } else if (!responseReceipt.status) {
+        await Payments.updateOne(
+          { _id: payment._id },
+          { status: -1, status_text: "canceled" }
+        );
+        return clearTimeout(timer);
+      } else {
+        try {
+          const response = (await EthereumWeb3.eth.getTransaction(
+            signature
+          )) as any;
+          if (response?.input === "0x") {
+            if (
+              address === "basic" &&
+              amounti === response.value &&
+              from.toLowerCase() === response.from.toLowerCase() &&
+              response.to.toLowerCase() === ADMINMPUB?.toLowerCase()
+            ) {
+              await Payments.findByIdAndUpdate(
+                ObjectId(payment._id),
+                { status: 100, status_text: "confirmed" },
+                { new: true }
+              );
+              await balanceUpdate({
+                req,
+                balanceId,
+                amount,
+                type: "deposit-metamask",
+              });
+              return clearTimeout(timer);
+            } else {
+              return clearTimeout(timer);
+            }
+          } else {
+            const erc20TransferABI = [
+              { type: "address", name: "receiver" },
+              { type: "uint256", name: "amount" },
+            ];
+            const decoded = EthereumWeb3.eth.abi.decodeParameters(
+              erc20TransferABI,
+              response.input.slice(10)
+            );
+            if (
+              amounti === decoded.amount &&
+              from.toLowerCase() === response.from.toLowerCase() &&
+              address.toLowerCase() === response.to.toLowerCase() &&
+              decoded.receiver.toLowerCase() === ADMINMPUB?.toLowerCase()
+            ) {
+              await Payments.findByIdAndUpdate(
+                ObjectId(payment._id),
+                { status: 100, status_text: "confirmed" },
+                { new: true }
+              );
+              await balanceUpdate({
+                req,
+                balanceId,
+                amount,
+                type: "deposit-metamask",
+              });
+              return clearTimeout(timer);
+            } else {
+              return clearTimeout(timer);
+            }
+          }
+        } catch (error) {
+          if (currencyResult.network == "binance") {
+            EthereumWeb3 = new Web3(getBinanceRPCurl());
+          } else {
+            EthereumWeb3 = new Web3(getEtherRPCurl());
+          }
+        }
       }
     }
     timeout++;
@@ -356,7 +495,7 @@ export const getAdminBalance = async (req: Request, res: Response) => {
 
   for (const i in currencies) {
     const currency: any = currencies[i];
-    const balance = await getSOLbalance(ADMINPUB, currency);
+    const balance = await getSOLbalance(ADMINSPUB, currency);
     const usdbalance = balance * currency.price;
     solana[currency.symbol] = {
       usdbalance,
@@ -378,7 +517,7 @@ export const withdrawalTimer = async () => {
     ipn_type: "withdrawal",
   });
   if (processingPayment) {
-    const res = await getTxnResult(processingPayment.signature);
+    const res = await getSolanaTxnResult(processingPayment.signature);
     if (!res) return;
     if (!res.status) {
       await Payments.updateOne(

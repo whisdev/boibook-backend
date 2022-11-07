@@ -55,14 +55,18 @@ const CurrenciesSchema = new Schema(
       type: String,
       default: "",
     },
+    network: {
+      type: String,
+      default: "",
+    },
     // abi: {
     //   type: Array,
     //   default: [],
     // },
-    // type: {
-    //   type: Number,
-    //   required: true,
-    // },
+    decimals: {
+      type: Number,
+      default: 18,
+    },
     status: {
       type: Boolean,
       default: true,
