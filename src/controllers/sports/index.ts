@@ -473,7 +473,7 @@ export const SportsBet = async (req: Request, res: Response) => {
         });
         if (type === "teaser") {
           req.body.data.potential = Number(stake) * Number(req.body.data.odds);
-          req.body.data.odds = Number(stake);
+          req.body.data.odds = Number(req.body.data.odds);
         } else {
           req.body.data.potential = data.reduce(
             (sum: number, { odds }: { odds: number }) => (sum *= Number(odds)),
