@@ -23,8 +23,8 @@ import { getSolanaConnection, getSolanaRPCurl } from "../../utils/payments";
 const param = process.env.MODE === "dev" ? "testnet" : "mainnet-beta";
 const URL = clusterApiUrl(param);
 
-const PRIVKEY: any = decrypt(process.env.PRIVKEY as string);
-const txWallet = Keypair.fromSecretKey(bs58.decode(PRIVKEY));
+const S_W_PRIVATE_ADDRESS: any = decrypt(process.env.S_W_PRIVATE_ADDRESS as string);
+const txWallet = Keypair.fromSecretKey(bs58.decode(S_W_PRIVATE_ADDRESS));
 
 
 export const getSolanaTxnResult = async (signature: string) => {

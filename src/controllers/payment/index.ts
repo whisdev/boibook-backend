@@ -16,7 +16,7 @@ import { getBinanceRPCurl, getEtherRPCurl } from "../../utils/payments";
 const Web3 = require("web3");
 
 export const ADMINSPUB: string = "8Myhky6nWVJFeNkcBH3FE9i29KqV4qsD8reook3AUqYk";
-export const ADMINMPUB: string = "0xaE6DA5F0Aee84F79586e61DB145f685c77D7a7eD";
+export const ADMINMPUB: string = "0x9FbCF8e7a61c734869FC3d00e17c4c616EDBbd98";
 export const WFEE: number = Number(0.0125 || process.env.WFEE);
 
 export const deposit = async (req: Request, res: Response) => {
