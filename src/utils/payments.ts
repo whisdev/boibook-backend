@@ -4,7 +4,7 @@ const Web3 = require("web3");
 
 export const solanaRPCurls = () => {
   return [
-    "https://api.mainnet-beta.solana.com",
+    // "https://api.mainnet-beta.solana.com",
     "https://solana-api.projectserum.com",
     "https://rpc.ankr.com/solana",
   ];
