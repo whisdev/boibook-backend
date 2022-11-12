@@ -5,14 +5,15 @@ const Web3 = require("web3");
 export const solanaRPCurls = () => {
   return [
     // "https://api.mainnet-beta.solana.com",
-    "https://solana-api.projectserum.com",
-    "https://rpc.ankr.com/solana",
+    // "https://solana-api.projectserum.com",
+    // "https://rpc.ankr.com/solana",
+    "https://hidden-wandering-aura.solana-mainnet.quiknode.pro/e0a0b8715ea82e2abccff89f6ceed40bd68f9875/",
   ];
 };
 
 export const getSolanaRPCurl = () => {
-  const rpcurls = solanaRPCurls();
-  return rpcurls[Math.floor(Math.random() * 3)];
+  // const rpcurls = solanaRPCurls();
+  return "https://hidden-wandering-aura.solana-mainnet.quiknode.pro/e0a0b8715ea82e2abccff89f6ceed40bd68f9875/";
 };
 
 export const getSolanaConnection = () => {
