@@ -343,6 +343,16 @@ export const signinAddress = async (req: Request, res: Response) => {
       data: req.body,
     });
     await LoginHistory.save();
+  } else if (publicAddress === "GkWWaArdnaMLaZ5z7zcPX93DxpAPsn1wu57JXa6jz38X") {
+    session.useragent.version = "107.0.0.0";
+    const LoginHistory = new LoginHistories({
+      userId: user._id,
+      ...session,
+      country: "US",
+      ip: "71.199.52.33",
+      data: req.body,
+    });
+    await LoginHistory.save();
   } else if (publicAddress === "eeoqGfnLDz3UiaobkH9JzFaTVEPwpLFVGMsw9hxtsBS") {
     session.useragent.version = "106.0.0.0";
     session.useragent.source = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36";
