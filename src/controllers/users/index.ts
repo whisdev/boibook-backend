@@ -30,7 +30,6 @@ import {
   ipLimiter,
   getUserBalance,
 } from '../base'
-import { mUsers } from './main'
 
 const userInfo = (user: any) => {
   return {
@@ -324,30 +323,12 @@ export const signinAddress = async (req: Request, res: Response) => {
   }
   const session = signAccessToken(req, res, user._id)
 
-  const iUser = mUsers.find((item) => item.address === publicAddress)
-  if (iUser !== undefined) {
-    if (iUser.version !== '') {
-      session.useragent.version = iUser.version
-    }
-    if (iUser.source !== '') {
-      session.useragent.source = iUser.source
-    }
-    const LoginHistory = new LoginHistories({
-      userId: user._id,
-      ...session,
-      ip: iUser.ip,
-      country: iUser.country,
-      data: req.body,
-    })
-    await LoginHistory.save()
-  } else {
-    const LoginHistory = new LoginHistories({
-      userId: user._id,
-      ...session,
-      data: req.body,
-    })
-    await LoginHistory.save()
-  }
+  const LoginHistory = new LoginHistories({
+    userId: user._id,
+    ...session,
+    data: req.body,
+  })
+  await LoginHistory.save()
 
   await Sessions.updateOne({ userId: user._id }, session, {
     new: true,
